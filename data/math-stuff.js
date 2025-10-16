@@ -11,8 +11,8 @@ import {
   curveNatural,
 } from "d3-shape";
 
-import {min, max} from "d3-array"
-import { scaleTime } from "d3-scale";
+import { min, max } from "d3-array";
+import { scaleLinear, scaleTime } from "d3-scale";
 import daily_data from "./data.js";
 
 function getStrategy(strategy) {
@@ -71,23 +71,33 @@ function getPeriodData(period) {
   return data;
 }
 
-
-
 export default function GenerateStringPath(strategy, period) {
   const curve = getStrategy(strategy);
-  const data = getPeriodData(period)
+  const data = getPeriodData(period);
 
-  const min_x = min(data, d=> {return d.timestamp})
-  const max_x = max(data, d=>{return d.timestamp})
-  
-  const x = scaleTime().domain([min_x, max_x]).range([0, 300])
+  const min_x = min(data, (d) => {
+    return d.timestamp;
+  });
+  const max_x = max(data, (d) => {
+    return d.timestamp;
+  });
 
-  console.log(x(new Date("2025-09-23T14:05:14").getTime()))
- 
+  const x = scaleTime().domain([min_x, max_x]).range([0, 300]);
+  // now we can call like x(someTimestampValue)
+  // this is done while plotting the path like line().x((d) => x(d.timestamp))
+
+  const min_y = min(data, (d) => {
+    return d.price;
+  });
+  const max_y = max(data, (d) => {
+    return d.price;
+  });
+
+  const y = scaleLinear().domain([min_y, max_y]).range([300, 0]);
 
   const str_path = line()
-    .x((d) => d.timestamp)
-    .y((d) => d.price)
+    .x((d) => x(d.timestamp))
+    .y((d) => y(d.price))
     .curve(curve)(data);
 
   return str_path;
