@@ -10,7 +10,10 @@ import {
   curveMonotoneX,
   curveNatural,
 } from "d3-shape";
-import data from "./data.js";
+
+import {min, max} from "d3-array"
+import { scaleTime } from "d3-scale";
+import daily_data from "./data.js";
 
 function getStrategy(strategy) {
   let curve;
@@ -42,16 +45,54 @@ function getStrategy(strategy) {
   return curve;
 }
 
-export default function GenerateStringPath(points, strategy) {
+function getTimestamps(data) {
+  let timestamped_data = data.map((item) => {
+    return { ...item, timestamp: new Date(item.timestamp).getTime() };
+  });
 
+  return timestamped_data;
+}
+
+function getPeriodData(period) {
+  let data;
+  switch (period) {
+    case "today":
+      data = getTimestamps(daily_data);
+      break;
+    case "week":
+      data = getTimestamps(weekly_data);
+      break;
+    default:
+      console.warn("invalid period, falling back to default daily");
+      data = getTimestamps(daily_data);
+      break;
+  }
+
+  return data;
+}
+
+
+
+export default function GenerateStringPath(strategy, period) {
   const curve = getStrategy(strategy);
+  const data = getPeriodData(period)
+
+  const min_x = min(data, d=> {return d.timestamp})
+  const max_x = max(data, d=>{return d.timestamp})
+  
+  const x = scaleTime().domain([min_x, max_x]).range([0, 300])
+
+  console.log(x(new Date("2025-09-23T14:05:14").getTime()))
+ 
 
   const str_path = line()
     .x((d) => d.timestamp)
     .y((d) => d.price)
-    .curve(curve)(points);
+    .curve(curve)(data);
 
   return str_path;
 }
 
-console.log(GenerateStringPath(data, "natural"));
+console.log(GenerateStringPath("natural", "today"));
+
+//console.log(getTimestamps(daily_data));
