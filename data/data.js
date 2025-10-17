@@ -22,7 +22,7 @@ const daily_data = [
   {
     "id": 7,
     "timestamp": "2025-09-23T11:50:02",
-    "price": 136.53
+    "price": 156.53
   },
   {
     "id": 10,
@@ -32,12 +32,12 @@ const daily_data = [
   {
     "id": 16,
     "timestamp": "2025-09-23T12:49:40",
-    "price": 89.28
+    "price": 189.28
   },
   {
     "id": 3,
     "timestamp": "2025-09-23T13:17:21",
-    "price": 117.18
+    "price": 157.18
   },
   {
     "id": 8,
