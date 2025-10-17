@@ -71,7 +71,7 @@ function getPeriodData(period) {
   return data;
 }
 
-export default function GenerateStringPath(strategy, period, canvas_width) {
+export function GenerateStringPath(strategy, period, canvas_width) {
   const curve = getStrategy(strategy);
   const data = getPeriodData(period);
 
