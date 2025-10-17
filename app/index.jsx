@@ -1,6 +1,7 @@
 import { Text, View, StyleSheet } from "react-native";
 import { Canvas, LinearGradient, Path, vec, Skia } from "@shopify/react-native-skia"
 import { GenerateStringPath } from "../data/math-stuff"
+import PeriodBar from "../components/PeriodBar"
 
 const COLORS = ["#f69d69", "#ffc37d", "#61e0a1", "#31cbd1"]
 const COLORS2 = ["#ec38bcae", "#000"]
@@ -19,7 +20,7 @@ export default function Index() {
         //justifyContent: "center",
         paddingVertical: 30,
         alignItems: "center",
-        backgroundColor: "black",
+        backgroundColor: "#181818",
         fontFamily:"Satoshi-Light"
       }}
     >
@@ -27,7 +28,7 @@ export default function Index() {
       <Text style={styles.home__percent}>+12.32%</Text>
 
 
-      <Canvas style={{ width: SIZE, height: SIZE, marginTop:40 }}>
+      <Canvas style={{ width: SIZE, height: SIZE, marginTop:40, marginBottom:40 }}>
         <Path path={path}
           style="stroke"
           strokeWidth={5}
@@ -53,6 +54,8 @@ export default function Index() {
           />
         </Path> */}
       </Canvas>
+
+      <PeriodBar />
 
     </View>
   );
