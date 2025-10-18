@@ -82,7 +82,7 @@ export function GenerateStringPath(strategy, period, canvas_width) {
     return d.timestamp;
   });
 
-  const x = scaleTime().domain([min_x, max_x]).range([0, canvas_width]);
+  const x_func = scaleTime().domain([min_x, max_x]).range([0, canvas_width]);
   // now we can call like x(someTimestampValue)
   // this is done while plotting the path like line().x((d) => x(d.timestamp))
 
@@ -96,12 +96,11 @@ export function GenerateStringPath(strategy, period, canvas_width) {
   const y = scaleLinear().domain([min_y, max_y]).range([canvas_width, 0]);
 
   const str_path = line()
-    .x((d) => x(d.timestamp))
+    .x((d) => x_func(d.timestamp))
     .y((d) => y(d.price))
     .curve(curve)(data);
 
-  return str_path;
+  return str_path, x_func;
 }
 
-console.log(GenerateStringPath("natural", "today", 300));
-
+//console.log(GenerateStringPath("natural", "today", 300));
