@@ -12,7 +12,7 @@ import {
 } from "d3-shape";
 
 import { min, max } from "d3-array";
-import { scaleLinear, scaleTime } from "d3-scale";
+import { scaleLinear, scaleTime, invert } from "d3-scale";
 import daily_data from "./data.js";
 
 function getStrategy(strategy) {
@@ -71,7 +71,7 @@ function getPeriodData(period) {
   return data;
 }
 
-export function GenerateStringPath(strategy, period, canvas_width) {
+function GenerateStringPath(strategy, period, canvas_width) {
   const curve = getStrategy(strategy);
   const data = getPeriodData(period);
 
@@ -93,14 +93,58 @@ export function GenerateStringPath(strategy, period, canvas_width) {
     return d.price;
   });
 
-  const y = scaleLinear().domain([min_y, max_y]).range([canvas_width, 0]);
+  const y_func = scaleLinear().domain([min_y, max_y]).range([canvas_width, 0]);
 
   const str_path = line()
     .x((d) => x_func(d.timestamp))
-    .y((d) => y(d.price))
+    .y((d) => y_func(d.price))
     .curve(curve)(data);
 
-  return str_path, x_func;
+  return { str_path, x_func, y_func, data };
 }
 
-//console.log(GenerateStringPath("natural", "today", 300));
+let path_config = null;
+
+function GetYForX(x_pos, canvas_width) {
+  // IDEA BEHIND THIS FUNC. :
+  // the curve is not linear so find two nearby points for the given X (timestamp)
+  // then assume them as a linear line and get Y via linear interpolation
+  console.log("inside get y for x");
+  if (!path_config) {
+    path_config = GenerateStringPath("curveBumpX", "today", 300);
+  }
+
+  const { x_func, y_func, data } = path_config;
+  console.log("x pos passed", x_pos);
+
+  // keep x within bounds by clamping it
+  let clamped_x_pos = Math.max(0, Math.min(canvas_width, x_pos));
+
+  let timestamp = x_func.invert(clamped_x_pos).getTime();
+  console.log("timestamp passed from xpos", timestamp);
+  let left_idx = 0;
+  let len = data.length;
+
+  if (data.length === 0) throw new Error("Data array is empty");
+
+  for (let i = 0; i < len - 1; i++) {
+    console.log("777777", data[i].timestamp);
+    if (data[i].timestamp <= timestamp && data[i + 1].timestamp >= timestamp) {
+      left_idx = i;
+      break;
+    }
+  }
+
+  const left = data[left_idx];
+  console.log("leftindex", left_idx, data[left_idx]);
+  const right = data[left_idx + 1] || left;
+
+  // do a linear interpolation here to find the closest point on curve
+  const ratio =
+    (timestamp - left.timestamp) / (right.timestamp - left.timestamp);
+  const y_val = left.price + ratio * (right.price - left.price);
+
+  return y_func(y_val);
+}
+
+export { GenerateStringPath, GetYForX };
