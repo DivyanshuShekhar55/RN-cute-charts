@@ -4,8 +4,8 @@ import { GenerateStringPath, GetYForX } from "../data/math-stuff"
 import PeriodBar from "../components/PeriodBar"
 import Cursor from "../components/Cursor"
 import { Gesture, GestureDetector } from "react-native-gesture-handler"
-import { useDerivedValue, useSharedValue } from "react-native-reanimated";
-import { runOnJS } from "react-native-worklets";
+import { useDerivedValue, useSharedValue, runOnJS } from "react-native-reanimated";
+
 
 const COLORS = ["#f69d69", "#ffc37d", "#61e0a1", "#31cbd1"]
 //const COLORS2 = ["#ec38bcae", "#000"]
