@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet, Dimensions } from "react-native";
 import { Canvas, LinearGradient, Path, vec, Skia } from "@shopify/react-native-skia"
 import { GenerateStringPath, GetYForX } from "../data/math-stuff"
 import PeriodBar from "../components/PeriodBar"
@@ -9,10 +9,14 @@ import { useEffect, useState } from "react";
 
 
 const COLORS = ["#f69d69", "#ffc37d", "#61e0a1", "#31cbd1"]
-const SIZE = 300
+
+const WIDTH = Dimensions.get("screen").width
+const SIZE = WIDTH
 
 const { str_path, x_func, data, y_func } = GenerateStringPath("curveBasis", "today", SIZE)
-// const skpath = Skia.Path.MakeFromSVGString(str_path)
+
+ const skpath = Skia.Path.MakeFromSVGString(str_path)
+console.log("size",SIZE)
 
 
 export default function Index() {
@@ -32,7 +36,7 @@ export default function Index() {
   const updateY = (clamped_x) => {
     let res_prices = GetYForX(clamped_x, SIZE, "binarySearchWithInterpolation")
     y_pos.value = res_prices.y_coord
-    
+
     price_animated_val.value = withTiming(res_prices.real_price, { duration: 100 })
   }
 
@@ -59,7 +63,9 @@ export default function Index() {
 
           <Cursor x_pos={x_pos} y_pos={y_pos} />
 
-          <Path path={str_path}
+          {skpath && (
+
+          <Path path={skpath}
             style="stroke"
             strokeWidth={5}
             color={"#fff"}>
@@ -70,6 +76,7 @@ export default function Index() {
               colors={COLORS}
             />
           </Path>
+          )}
 
         </Canvas>
       </GestureDetector>
