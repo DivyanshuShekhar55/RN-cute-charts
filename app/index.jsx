@@ -4,7 +4,8 @@ import { GenerateStringPath, GetYForX } from "../data/math-stuff"
 import PeriodBar from "../components/PeriodBar"
 import Cursor from "../components/Cursor"
 import { Gesture, GestureDetector } from "react-native-gesture-handler"
-import { useDerivedValue, useSharedValue, runOnJS } from "react-native-reanimated";
+import { useDerivedValue, useSharedValue, runOnJS, withTiming } from "react-native-reanimated";
+import { useEffect, useState } from "react";
 
 
 const COLORS = ["#f69d69", "#ffc37d", "#61e0a1", "#31cbd1"]
@@ -18,15 +19,23 @@ export default function Index() {
   let init_x = x_func(data[0].timestamp)
   let init_y = y_func(data[0].price)
 
-  console.log("hereeeeeeee", init_x, init_y)
-
   const x_pos = useSharedValue(init_x)
   const y_pos = useSharedValue(init_y)
+  const price_animated_val = useSharedValue(data[0].price)
+  const [priceText, setPriceText] = useState(data[0].price)
+
+  useDerivedValue(() => {
+    const txt = price_animated_val.value.toFixed(2)
+    runOnJS(setPriceText)(txt)
+  }, [price_animated_val])
 
   const updateY = (clamped_x) => {
     let res_prices = GetYForX(clamped_x, SIZE, "binarySearchWithInterpolation")
     y_pos.value = res_prices.y_coord
+
+    price_animated_val.value = withTiming(res_prices.real_price, { duration: 100 })
   }
+
 
   const pan = Gesture.Pan().onUpdate((evt) => {
     'worklet';
@@ -37,11 +46,10 @@ export default function Index() {
     runOnJS(updateY)(clamped)
   });
 
-
   return (
     <View style={styles.home__main}>
 
-      <Text style={styles.home__price}>$10,000.12</Text>
+      <Text style={styles.home__price}>${priceText}</Text>
       <Text style={styles.home__percent}>+12.32%</Text>
 
 
