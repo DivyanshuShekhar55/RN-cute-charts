@@ -46,12 +46,12 @@ const daily_data = [
   },
   {
     id: 10,
-    timestamp: "2025-09-23T14:12:31",
+    timestamp: "2025-09-23T14:05:31",
     price: 160.1,
   },
   {
     id: 11,
-    timestamp: "2025-09-23T14:05:14",
+    timestamp: "2025-09-23T14:21:14",
     price: 103.45,
   },
   {
@@ -81,8 +81,8 @@ const daily_data = [
   },
   {
     id: 17,
-    timestamp: "2025-09-23T16:39:50",
-    price: 85.49,
+    timestamp: "2025-09-23T17:39:50",
+    price: 165.49,
   },
 ];
 

@@ -110,8 +110,11 @@ function GetYForX(x_pos, canvas_width) {
   // the curve is not linear so find two nearby points for the given X (timestamp)
   // then assume them as a linear line and get Y via linear interpolation
   console.log("inside get y for x");
-  if (!path_config) {
-    path_config = GenerateStringPath("curveBumpX", "today", 300);
+  if (!path_config || path_config.canvas_width !== canvas_width) {
+    path_config = {
+      ...GenerateStringPath("curveBumpX", "today", canvas_width),
+      canvas_width,
+    };
   }
 
   const { x_func, y_func, data } = path_config;
@@ -121,28 +124,38 @@ function GetYForX(x_pos, canvas_width) {
   let clamped_x_pos = Math.max(0, Math.min(canvas_width, x_pos));
 
   let timestamp = x_func.invert(clamped_x_pos).getTime();
-  console.log("timestamp passed from xpos", timestamp);
+
   let left_idx = 0;
-  let len = data.length;
 
-  if (data.length === 0) throw new Error("Data array is empty");
+  if (timestamp <= data[0].timestamp) {
+    return y_func(data[0].price);
+  }
+  if (timestamp >= data[data.length - 1].timestamp) {
+    return y_func(data[data.length - 1].price);
+  }
 
-  for (let i = 0; i < len - 1; i++) {
-    console.log("777777", data[i].timestamp);
-    if (data[i].timestamp <= timestamp && data[i + 1].timestamp >= timestamp) {
-      left_idx = i;
-      break;
+  // Binary search (could have gone with linear search as well but lol why not better)
+  let left = 0;
+  let right = data.length - 1;
+
+  while (left < right - 1) {
+    const mid = Math.floor((left + right) / 2);
+    if (data[mid].timestamp <= timestamp) {
+      left = mid;
+    } else {
+      right = mid;
     }
   }
 
-  const left = data[left_idx];
-  console.log("leftindex", left_idx, data[left_idx]);
-  const right = data[left_idx + 1] || left;
+  left_idx = left;
 
-  // do a linear interpolation here to find the closest point on curve
-  const ratio =
-    (timestamp - left.timestamp) / (right.timestamp - left.timestamp);
-  const y_val = left.price + ratio * (right.price - left.price);
+  const left_point = data[left_idx];
+  const right_point = data[left_idx + 1];
+
+  // do Linear interpolation here
+  const denominator = right_point.timestamp - left_point.timestamp;
+  const ratio = denominator !== 0 ? (timestamp - left_point.timestamp) / denominator : 0;
+  const y_val = left_point.price + ratio * (right_point.price - left_point.price);
 
   return y_func(y_val);
 }

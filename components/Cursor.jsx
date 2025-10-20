@@ -1,9 +1,8 @@
 import React from 'react'
-import { Canvas, Circle, Group } from '@shopify/react-native-skia'
-import { useAnimatedReaction, useDerivedValue, useSharedValue } from 'react-native-reanimated'
+import { Circle } from '@shopify/react-native-skia'
 
 const Cursor = ({ x_pos, y_pos }) => {
-  
+
   return (
     <>
       <Circle style="fill" color="#f69d69" cx={x_pos} cy={y_pos} r={5} />
