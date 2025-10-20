@@ -32,7 +32,7 @@ export default function Index() {
   const updateY = (clamped_x) => {
     let res_prices = GetYForX(clamped_x, SIZE, "binarySearchWithInterpolation")
     y_pos.value = res_prices.y_coord
-
+    
     price_animated_val.value = withTiming(res_prices.real_price, { duration: 100 })
   }
 

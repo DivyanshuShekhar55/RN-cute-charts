@@ -199,7 +199,8 @@ const binarySearchWithInterpolation = (clamped_x_pos, x_func, data, y_func) => {
   const y_val =
     left_point.price + ratio * (right_point.price - left_point.price);
 
-  let real_price = data[left_idx].price
+  let real_price = left_point.price
+  console.log("real price: ",real_price)
   let y_coord = y_func(y_val)
   return {y_coord, real_price};
 };
