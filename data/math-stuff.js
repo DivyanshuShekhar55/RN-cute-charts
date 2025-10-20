@@ -105,7 +105,7 @@ function GenerateStringPath(strategy, period, canvas_width) {
 
 let path_config = null;
 
-function GetYForX(x_pos, canvas_width) {
+function GetYForX(x_pos, canvas_width, y_search_alogorithm) {
   // IDEA BEHIND THIS FUNC. :
   // the curve is not linear so find two nearby points for the given X (timestamp)
   // then assume them as a linear line and get Y via linear interpolation
@@ -124,7 +124,7 @@ function GetYForX(x_pos, canvas_width) {
   let clamped_x_pos = Math.max(0, Math.min(canvas_width, x_pos));
 
   let y_val = searchStrategy(
-    "binaryWithInterpolation",
+    y_search_alogorithm,
     clamped_x_pos,
     x_func,
     data,
@@ -143,8 +143,8 @@ const searchStrategy = (
 ) => {
   let res;
   switch (search_strategy) {
-    case "binaryWithInterpolation":
-      res = BinarySearchWithInterpolation(clamped_x_pos, x_func, data, y_func);
+    case "binarySearchWithInterpolation":
+      res = binarySearchWithInterpolation(clamped_x_pos, x_func, data, y_func);
       break;
 
     // might add more strategies later
@@ -155,14 +155,14 @@ const searchStrategy = (
       console.warn(
         "invalid search strategy, falling back to binary with interpolation"
       );
-      res = BinarySearchWithInterpolation(clamped_x_pos, x_func, data, y_func);
+      res = binarySearchWithInterpolation(clamped_x_pos, x_func, data, y_func);
       break;
   }
 
   return res;
 };
 
-const BinarySearchWithInterpolation = (clamped_x_pos, x_func, data, y_func) => {
+const binarySearchWithInterpolation = (clamped_x_pos, x_func, data, y_func) => {
   let timestamp = x_func.invert(clamped_x_pos).getTime();
 
   let left_idx = 0;
