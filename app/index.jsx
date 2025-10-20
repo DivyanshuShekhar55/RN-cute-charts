@@ -24,7 +24,8 @@ export default function Index() {
   const y_pos = useSharedValue(init_y)
 
   const updateY = (clamped_x) => {
-    y_pos.value = GetYForX(clamped_x, SIZE, "binarySearchWithInterpolation")
+    let res_prices = GetYForX(clamped_x, SIZE, "binarySearchWithInterpolation")
+    y_pos.value = res_prices.y_coord
   }
 
   const pan = Gesture.Pan().onUpdate((evt) => {

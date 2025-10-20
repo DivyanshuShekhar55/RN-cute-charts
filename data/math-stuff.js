@@ -123,15 +123,15 @@ function GetYForX(x_pos, canvas_width, y_search_alogorithm) {
   // keep x within bounds by clamping it
   let clamped_x_pos = Math.max(0, Math.min(canvas_width, x_pos));
 
-  let y_val = searchStrategy(
+  let res = searchStrategy(
     y_search_alogorithm,
     clamped_x_pos,
     x_func,
     data,
     y_func
   );
-
-  return y_func(y_val);
+  
+  return res
 }
 
 const searchStrategy = (
@@ -141,7 +141,7 @@ const searchStrategy = (
   data,
   y_func
 ) => {
-  let res;
+  let res
   switch (search_strategy) {
     case "binarySearchWithInterpolation":
       res = binarySearchWithInterpolation(clamped_x_pos, x_func, data, y_func);
@@ -159,7 +159,7 @@ const searchStrategy = (
       break;
   }
 
-  return res;
+  return res
 };
 
 const binarySearchWithInterpolation = (clamped_x_pos, x_func, data, y_func) => {
@@ -199,7 +199,9 @@ const binarySearchWithInterpolation = (clamped_x_pos, x_func, data, y_func) => {
   const y_val =
     left_point.price + ratio * (right_point.price - left_point.price);
 
-  return y_val;
+  let real_price = data[left_idx].price
+  let y_coord = y_func(y_val)
+  return {y_coord, real_price};
 };
 
 export { GenerateStringPath, GetYForX };
