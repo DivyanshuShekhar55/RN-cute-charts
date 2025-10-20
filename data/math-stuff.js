@@ -109,7 +109,8 @@ function GetYForX(x_pos, canvas_width) {
   // IDEA BEHIND THIS FUNC. :
   // the curve is not linear so find two nearby points for the given X (timestamp)
   // then assume them as a linear line and get Y via linear interpolation
-  console.log("inside get y for x");
+  // also cache the path configs
+
   if (!path_config || path_config.canvas_width !== canvas_width) {
     path_config = {
       ...GenerateStringPath("curveBumpX", "today", canvas_width),
@@ -118,11 +119,50 @@ function GetYForX(x_pos, canvas_width) {
   }
 
   const { x_func, y_func, data } = path_config;
-  console.log("x pos passed", x_pos);
 
   // keep x within bounds by clamping it
   let clamped_x_pos = Math.max(0, Math.min(canvas_width, x_pos));
 
+  let y_val = searchStrategy(
+    "binaryWithInterpolation",
+    clamped_x_pos,
+    x_func,
+    data,
+    y_func
+  );
+
+  return y_func(y_val);
+}
+
+const searchStrategy = (
+  search_strategy,
+  clamped_x_pos,
+  x_func,
+  data,
+  y_func
+) => {
+  let res;
+  switch (search_strategy) {
+    case "binaryWithInterpolation":
+      res = BinarySearchWithInterpolation(clamped_x_pos, x_func, data, y_func);
+      break;
+
+    // might add more strategies later
+    // one might be using lookup tables
+    // as for less data points interpolation fails
+
+    default:
+      console.warn(
+        "invalid search strategy, falling back to binary with interpolation"
+      );
+      res = BinarySearchWithInterpolation(clamped_x_pos, x_func, data, y_func);
+      break;
+  }
+
+  return res;
+};
+
+const BinarySearchWithInterpolation = (clamped_x_pos, x_func, data, y_func) => {
   let timestamp = x_func.invert(clamped_x_pos).getTime();
 
   let left_idx = 0;
@@ -154,10 +194,12 @@ function GetYForX(x_pos, canvas_width) {
 
   // do Linear interpolation here
   const denominator = right_point.timestamp - left_point.timestamp;
-  const ratio = denominator !== 0 ? (timestamp - left_point.timestamp) / denominator : 0;
-  const y_val = left_point.price + ratio * (right_point.price - left_point.price);
+  const ratio =
+    denominator !== 0 ? (timestamp - left_point.timestamp) / denominator : 0;
+  const y_val =
+    left_point.price + ratio * (right_point.price - left_point.price);
 
-  return y_func(y_val);
-}
+  return y_val;
+};
 
 export { GenerateStringPath, GetYForX };
