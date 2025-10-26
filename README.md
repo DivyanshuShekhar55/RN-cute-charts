@@ -1,50 +1,31 @@
-# Welcome to your Expo app 👋
+## Welcome To Cute Charts 
+Made with ❤️ Expo, React Native, D3.js, Reanimated, Gesture Handler and Skia
+ 
+<video controls src="./assets/demo-vid.mp4" title="Title"></video>
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Usage
+1. I have put all the data in ./data/data.js file. Note that the data that you provide to the chart component must be sorted.
+2. We are using a Bezier curve (`curveBasis`) as default curve over the provided data
+3. There are various curves you can try playing with - `curveLinear`, `curveBumpX`, `CurveMonotoneX` and the `natural` curve. Look at D3.js docs for more : https://d3js.org/d3-shape/curve
 
-## Get started
+4. The X-axis uses the time-scale function of the D3.js while Y-axis uses Linear scale.
 
-1. Install dependencies
+5. Here are the important function signatures
 
-   ```bash
-   npm install
-   ```
+ ```javascript
+ // generate the string path using this function signature
+const { str_path, x_func, data, y_func, x_range_min, x_range_max } = GenerateStringPath("curveBumpX", "today", SIZE)
 
-2. Start the app
+// generate the skia path using 
+const skpath = Skia.Path.MakeFromSVGString(str_path)
+```
+6. As the path is not a simple linear curve we need a method to map the finger's current X position on the canvas to the Y point on the curve
+We are currently implement this by finding the two closest data points to the current X. A linear interpolation then gives us the required to plot the Cursor.
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```javascript
+// gets the Y for current X
+let res_prices = GetYForX(clamped_x, SIZE, "binarySearchWithInterpolation")
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+7. 
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
