@@ -12,11 +12,12 @@ const COLORS = ["#f69d69", "#ffc37d", "#61e0a1", "#31cbd1"]
 
 const WIDTH = Dimensions.get("screen").width
 const SIZE = WIDTH
+const X_PAD = Math.max(8, SIZE * 0.05)
 
 const { str_path, x_func, data, y_func } = GenerateStringPath("curveBumpX", "today", SIZE)
 
- const skpath = Skia.Path.MakeFromSVGString(str_path)
-console.log("size",SIZE)
+const skpath = Skia.Path.MakeFromSVGString(str_path)
+console.log("size", SIZE)
 
 
 export default function Index() {
@@ -59,23 +60,23 @@ export default function Index() {
 
       <GestureDetector gesture={pan}>
 
-        <Canvas style={{ width: SIZE, height: SIZE*0.75, marginTop: 40, marginBottom: 40 }}>
+        <Canvas style={{ width: SIZE * 1.10, height: SIZE * 0.85, marginTop: 40, marginBottom: 40, paddingVertical: 20 }}>
 
           <Cursor x_pos={x_pos} y_pos={y_pos} />
 
           {skpath && (
 
-          <Path path={skpath}
-            style="stroke"
-            strokeWidth={5}
-            color={"#fff"}>
+            <Path path={skpath}
+              style="stroke"
+              strokeWidth={5}
+              color={"#fff"}>
 
-            <LinearGradient
-              start={vec(0, 0)}
-              end={vec(SIZE, SIZE)}
-              colors={COLORS}
-            />
-          </Path>
+              <LinearGradient
+                start={vec(0, 0)}
+                end={vec(SIZE, SIZE * 0.85)}
+                colors={COLORS}
+              />
+            </Path>
           )}
 
         </Canvas>
@@ -93,7 +94,8 @@ const styles = StyleSheet.create({
     paddingVertical: 50,
     alignItems: "center",
     backgroundColor: "#181818",
-    fontFamily: "Satoshi-Light"
+    fontFamily: "Satoshi-Light",
+    paddingHorizontal: 20
   },
   home__price: {
     color: "#ffffab",

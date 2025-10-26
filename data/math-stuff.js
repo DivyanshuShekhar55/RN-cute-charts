@@ -75,6 +75,9 @@ function GenerateStringPath(strategy, period, canvas_width) {
   const curve = getStrategy(strategy);
   const data = getPeriodData(period);
 
+  const X_PADDING = Math.max(8, canvas_width * 0.05);
+  const CHART_HEIGHT = Math.round(canvas_width * 0.85);
+
   const min_x = min(data, (d) => {
     return d.timestamp;
   });
@@ -82,7 +85,9 @@ function GenerateStringPath(strategy, period, canvas_width) {
     return d.timestamp;
   });
 
-  const x_func = scaleTime().domain([min_x, max_x]).range([0, canvas_width]);
+  const x_func = scaleTime()
+    .domain([min_x, max_x])
+    .range([X_PADDING, canvas_width - X_PADDING]);
   // now we can call like x(someTimestampValue)
   // this is done while plotting the path like line().x((d) => x(d.timestamp))
 
@@ -93,14 +98,25 @@ function GenerateStringPath(strategy, period, canvas_width) {
     return d.price;
   });
 
-  const y_func = scaleLinear().domain([min_y, max_y]).range([canvas_width*0.75, 0]);
+  const y_padding = (max_y - min_y) * 0.1;
+
+  const y_func = scaleLinear()
+    .domain([min_y - y_padding, max_y + y_padding])
+    .range([CHART_HEIGHT, 0]);
 
   const str_path = line()
     .x((d) => x_func(d.timestamp))
     .y((d) => y_func(d.price))
     .curve(curve)(data);
 
-  return { str_path, x_func, y_func, data };
+  return {
+    str_path,
+    x_func,
+    y_func,
+    data,
+    x_range_min: X_PADDING,
+    x_range_max: canvas_width - X_PADDING,
+  };
 }
 
 let path_config = null;
@@ -118,10 +134,10 @@ function GetYForX(x_pos, canvas_width, y_search_alogorithm) {
     };
   }
 
-  const { x_func, y_func, data } = path_config;
+  const { x_func, y_func, data, x_range_min, x_range_max } = path_config;
 
   // keep x within bounds by clamping it
-  let clamped_x_pos = Math.max(0, Math.min(canvas_width, x_pos));
+  let clamped_x_pos = Math.max(x_range_min, Math.min(x_range_max, x_pos));
 
   let res = searchStrategy(
     y_search_alogorithm,
@@ -130,8 +146,8 @@ function GetYForX(x_pos, canvas_width, y_search_alogorithm) {
     data,
     y_func
   );
-  
-  return res
+
+  return res;
 }
 
 const searchStrategy = (
@@ -141,7 +157,7 @@ const searchStrategy = (
   data,
   y_func
 ) => {
-  let res
+  let res;
   switch (search_strategy) {
     case "binarySearchWithInterpolation":
       res = binarySearchWithInterpolation(clamped_x_pos, x_func, data, y_func);
@@ -159,7 +175,7 @@ const searchStrategy = (
       break;
   }
 
-  return res
+  return res;
 };
 
 const binarySearchWithInterpolation = (clamped_x_pos, x_func, data, y_func) => {
@@ -199,10 +215,10 @@ const binarySearchWithInterpolation = (clamped_x_pos, x_func, data, y_func) => {
   const y_val =
     left_point.price + ratio * (right_point.price - left_point.price);
 
-  let real_price = left_point.price
-  console.log("real price: ",real_price)
-  let y_coord = y_func(y_val)
-  return {y_coord, real_price};
+  let real_price = left_point.price;
+  console.log("real price: ", real_price);
+  let y_coord = y_func(y_val);
+  return { y_coord, real_price };
 };
 
 export { GenerateStringPath, GetYForX };
