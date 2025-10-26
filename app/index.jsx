@@ -16,7 +16,7 @@ const COLORS = ["#f69d69", "#ffc37d", "#61e0a1", "#31cbd1"]
 const WIDTH = Dimensions.get("screen").width
 const SIZE = WIDTH
 
-const { str_path, x_func, data, y_func } = GenerateStringPath("curveBumpX", "today", SIZE)
+const { str_path, x_func, data, y_func, x_range_min, x_range_max } = GenerateStringPath("curveBumpX", "today", SIZE)
 
 const skpath = Skia.Path.MakeFromSVGString(str_path)
 console.log("size", SIZE)
@@ -47,7 +47,7 @@ export default function Index() {
   const pan = Gesture.Pan().onUpdate((evt) => {
     'worklet';
     const raw_x = Number(evt.x);
-    const clamped = Math.max(0, Math.min(SIZE, raw_x))
+    const clamped = Math.max(x_range_min, Math.min(x_range_max, raw_x))
     x_pos.value = clamped;
 
     runOnJS(updateY)(clamped)
@@ -62,7 +62,7 @@ export default function Index() {
 
       <GestureDetector gesture={pan}>
 
-        <Canvas style={{ width: SIZE * 1.10, height: SIZE * 0.85, marginTop: 40, marginBottom: 40, paddingVertical: 20 }}>
+        <Canvas style={{ width: SIZE, height: SIZE * 0.85, marginTop: 40, marginBottom: 40 }}>
 
           <Cursor x_pos={x_pos} y_pos={y_pos} />
 

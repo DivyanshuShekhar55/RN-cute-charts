@@ -3,16 +3,16 @@
 // generate the skia-path for curve
 
 import {
-  line,
   curveBasis,
   curveBumpX,
   curveLinear,
   curveMonotoneX,
   curveNatural,
+  line,
 } from "d3-shape";
 
-import { min, max } from "d3-array";
-import { scaleLinear, scaleTime, invert } from "d3-scale";
+import { max, min } from "d3-array";
+import { scaleLinear, scaleTime } from "d3-scale";
 import daily_data from "./data.js";
 
 function getStrategy(strategy) {
@@ -184,10 +184,12 @@ const binarySearchWithInterpolation = (clamped_x_pos, x_func, data, y_func) => {
   let left_idx = 0;
 
   if (timestamp <= data[0].timestamp) {
-    return y_func(data[0].price);
+    const p = data[0].price;
+    return { y_coord: y_func(p), real_price: p };
   }
   if (timestamp >= data[data.length - 1].timestamp) {
-    return y_func(data[data.length - 1].price);
+    const p = data[data.length - 1].price;
+    return { y_coord: y_func(p), real_price: p };
   }
 
   // Binary search (could have gone with linear search as well but lol why not better)
@@ -203,6 +205,8 @@ const binarySearchWithInterpolation = (clamped_x_pos, x_func, data, y_func) => {
     }
   }
 
+  if (left >= data.length - 1) left = data.length - 2;
+
   left_idx = left;
 
   const left_point = data[left_idx];
@@ -215,10 +219,11 @@ const binarySearchWithInterpolation = (clamped_x_pos, x_func, data, y_func) => {
   const y_val =
     left_point.price + ratio * (right_point.price - left_point.price);
 
-  let real_price = left_point.price;
+  let real_price = y_val;
   console.log("real price: ", real_price);
   let y_coord = y_func(y_val);
   return { y_coord, real_price };
 };
 
 export { GenerateStringPath, GetYForX };
+
