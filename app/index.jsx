@@ -6,6 +6,7 @@ import Cursor from "../components/Cursor"
 import { Gesture, GestureDetector } from "react-native-gesture-handler"
 import { useDerivedValue, useSharedValue, runOnJS, withTiming } from "react-native-reanimated";
 import { useEffect, useState } from "react";
+import StockHeader from "../components/StockHeader";
 
 
 const COLORS = ["#f69d69", "#ffc37d", "#61e0a1", "#31cbd1"]
@@ -54,9 +55,9 @@ export default function Index() {
   return (
     <View style={styles.home__main}>
 
-      <Text style={styles.home__price}>${priceText}</Text>
-      <Text style={styles.home__percent}>+12.32%</Text>
+      <StockHeader />
 
+      <Text style={styles.home__price}>${priceText}</Text>
 
       <GestureDetector gesture={pan}>
 
