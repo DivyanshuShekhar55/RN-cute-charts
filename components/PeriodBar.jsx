@@ -31,12 +31,13 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         gap: 15,
-        backgroundColor: "#e0e0"
+        backgroundColor: "#e0e0",
+        marginBottom: 20
     },
     period__btn: {
         backgroundColor: "#ffc37d",
-        paddingVertical: 10,
-        paddingHorizontal: 20,
+        paddingVertical: 8,
+        paddingHorizontal: 15,
         alignContent: "center",
         borderRadius: 8
     },

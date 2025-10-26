@@ -7,13 +7,14 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler"
 import { useDerivedValue, useSharedValue, runOnJS, withTiming } from "react-native-reanimated";
 import { useEffect, useState } from "react";
 import StockHeader from "../components/StockHeader";
+import ActionButton from "../components/ActionButton";
+import StockInfo from "../components/StockInfo";
 
 
 const COLORS = ["#f69d69", "#ffc37d", "#61e0a1", "#31cbd1"]
 
 const WIDTH = Dimensions.get("screen").width
 const SIZE = WIDTH
-const X_PAD = Math.max(8, SIZE * 0.05)
 
 const { str_path, x_func, data, y_func } = GenerateStringPath("curveBumpX", "today", SIZE)
 
@@ -85,6 +86,14 @@ export default function Index() {
 
       <PeriodBar />
 
+      <StockInfo />
+
+      <View style={styles.home__actionContanier}>
+
+        <ActionButton action={"Buy"} color={"red"} />
+        <ActionButton action={"Sell"} color={"#00d499"} />
+      </View>
+
     </View>
   );
 }
@@ -109,4 +118,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Satoshi-Light',
     marginTop: 15
   },
+  home__actionContanier: {
+    position: "absolute", bottom: 50, left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 20
+  }
+  
 });
