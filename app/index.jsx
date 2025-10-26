@@ -13,7 +13,7 @@ const COLORS = ["#f69d69", "#ffc37d", "#61e0a1", "#31cbd1"]
 const WIDTH = Dimensions.get("screen").width
 const SIZE = WIDTH
 
-const { str_path, x_func, data, y_func } = GenerateStringPath("curveBasis", "today", SIZE)
+const { str_path, x_func, data, y_func } = GenerateStringPath("curveBumpX", "today", SIZE)
 
  const skpath = Skia.Path.MakeFromSVGString(str_path)
 console.log("size",SIZE)
@@ -59,7 +59,7 @@ export default function Index() {
 
       <GestureDetector gesture={pan}>
 
-        <Canvas style={{ width: SIZE, height: SIZE, marginTop: 40, marginBottom: 40 }}>
+        <Canvas style={{ width: SIZE, height: SIZE*0.75, marginTop: 40, marginBottom: 40 }}>
 
           <Cursor x_pos={x_pos} y_pos={y_pos} />
 
@@ -90,7 +90,7 @@ export default function Index() {
 const styles = StyleSheet.create({
   home__main: {
     flex: 1,
-    paddingVertical: 30,
+    paddingVertical: 50,
     alignItems: "center",
     backgroundColor: "#181818",
     fontFamily: "Satoshi-Light"

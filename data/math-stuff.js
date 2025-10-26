@@ -93,7 +93,7 @@ function GenerateStringPath(strategy, period, canvas_width) {
     return d.price;
   });
 
-  const y_func = scaleLinear().domain([min_y, max_y]).range([canvas_width, 0]);
+  const y_func = scaleLinear().domain([min_y, max_y]).range([canvas_width*0.75, 0]);
 
   const str_path = line()
     .x((d) => x_func(d.timestamp))
