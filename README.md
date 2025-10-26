@@ -1,7 +1,7 @@
 ## Welcome To Cute Charts 
 Made with ❤️ Expo, React Native, D3.js, Reanimated, Gesture Handler and Skia
  
-![alt text](<demo.jpg>)
+<img src="demo.jpg" width="300" alt="Demo">
 
 ## Usage
 1. I have put all the data in ./data/data.js file. Note that the data that you provide to the chart component must be sorted.
