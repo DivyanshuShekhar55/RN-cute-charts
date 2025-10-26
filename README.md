@@ -1,7 +1,7 @@
 ## Welcome To Cute Charts 
 Made with ❤️ Expo, React Native, D3.js, Reanimated, Gesture Handler and Skia
  
-<video controls src="./assets/demo-vid.mp4" title="Title"></video>
+![alt text](<demo.jpg>)
 
 ## Usage
 1. I have put all the data in ./data/data.js file. Note that the data that you provide to the chart component must be sorted.
@@ -27,5 +27,12 @@ We are currently implement this by finding the two closest data points to the cu
 let res_prices = GetYForX(clamped_x, SIZE, "binarySearchWithInterpolation")
 ```
 
-7. 
+7. Feel free to add your own strategy for searching and plotting the cursor. Also note that this is a computational part so we can NOT run on the reanimated's UI thread. If you find a better way to achieve this please, please let me know more about it.
 
+8. Also note that using linear interpolation means we need ample number of points to render the cursor nicely over the curve. Lesser number of points will generate poor results from interpolation.
+
+## All The Resources
+1. Look up at D3's shape, scale and array modules
+2. https://youtu.be/xeLdmn3se1I - William Candillon's Skia charts
+3. https://www.youtube.com/live/rQroxWLZiCo?si=cmEP0X8v81vduDTX - Coding Train's D3 intro video
+4. Read some material on Bezier Curves and parametric curves
