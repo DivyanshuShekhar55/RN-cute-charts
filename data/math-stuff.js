@@ -12,7 +12,7 @@ import {
 } from "d3-shape";
 
 import { max, min } from "d3-array";
-import { scaleLinear, scaleTime } from "d3-scale";
+import { scaleLinear, scaleTime, scaleBand } from "d3-scale";
 import daily_data from "./data.js";
 
 function getStrategy(strategy) {
@@ -225,5 +225,19 @@ const binarySearchWithInterpolation = (clamped_x_pos, x_func, data, y_func) => {
   return { y_coord, real_price };
 };
 
-export { GenerateStringPath, GetYForX };
+const FindDomain = (data) => {
+  let mini = min(data, (d) => d.low);
+  let maxi = max(data, (d) => d.high);
+  return [mini, maxi];
+}
+
+const normaliseCandleData = (candle_data) =>{
+  // fit data in 0 to width range
+
+}
+
+
+
+
+export { GenerateStringPath, GetYForX, FindDomain };
 

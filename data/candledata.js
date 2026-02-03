@@ -1,10 +1,10 @@
-const candle_data = [
+export const candle_data = [
   {
     "timestamp": "1736234280000",
-    "open": 150.55,
+    "open": 350.55,
     "close": 455.32,
     "high": 500,
-    "low": 123.45,
+    "low": 423.45,
     "isBullish": true
   },
   {
