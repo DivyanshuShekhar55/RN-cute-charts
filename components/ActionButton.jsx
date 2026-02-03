@@ -1,13 +1,13 @@
-import { View, Text, Dimensions } from 'react-native'
-import React from 'react'
-import { StyleSheet, TouchableOpacity } from 'react-native'
 import Feather from '@expo/vector-icons/Feather';
+import { router } from 'expo-router';
+import React from 'react';
+import { Dimensions, StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 const WIDTH = Dimensions.get("screen").width
 
 const ActionButton = ({ action, color }) => {
     return (
-        <TouchableOpacity activeOpacity={0.6} style={[styles.actionBtn__main, { backgroundColor: color }]}>
+        <TouchableOpacity activeOpacity={0.6} style={[styles.actionBtn__main, { backgroundColor: color }]} onPress={()=>{router.push("/CandleMain")}}>
             <Text style={styles.actionBtn__text}>{action}</Text>
             <Feather name="arrow-up-right" size={24} color="#fff" />
         </TouchableOpacity>
