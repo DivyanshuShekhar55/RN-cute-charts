@@ -1,12 +1,11 @@
 import { Canvas, Line, Rect, vec } from '@shopify/react-native-skia'
-import candle_data from '../data/candledata.js'
-import { FindDomain } from "../data/math-stuff.js"
 import { scaleLinear } from 'd3-scale'
+import { FindDomain } from "../data/math-stuff.js"
 
 // don't know use of candles yet
 // fill is [highCandleCol, lowCandleCol]
 
-const CandleChart = ({ width, height, bgCol, data, candles, fill }) => {
+const CandleChart = ({ width, height, bgCol, data, fill }) => {
 
     let domain = FindDomain(data)
     let candleWidth = width / data.length
@@ -15,15 +14,15 @@ const CandleChart = ({ width, height, bgCol, data, candles, fill }) => {
 
     return (
         <Canvas width={width} height={height} style={{ backgroundColor: bgCol }}>
-            {candles.map((candle, idx) => (
+            {data.map((candle, idx) => (
                 <CandleStick
                     key={idx}
-                    scaleY
-                    scaleBody
-                    index
-                    candleWidth
-                    fill
-                    candle />
+                    scaleY={scaleY}
+                    scaleBody={scaleBody}
+                    index={idx}
+                    candleWidth={candleWidth}
+                    fill={fill}
+                    candle={candle} />
             ))}
         </Canvas>
     )
@@ -31,7 +30,7 @@ const CandleChart = ({ width, height, bgCol, data, candles, fill }) => {
 
 const CandleStick = ({ scaleY, scaleBody, index, candleWidth, fill, candle }) => {
     const { high, low, open, close } = candle
-    const fill = high > low ? fill[0] : fill[1]
+    const col = close > open ? fill[0] : fill[1]
     const x = index * candleWidth
     const yHigh = scaleY(Math.max(open, close))
     const candleHeight = scaleBody(Math.abs(open - close))
@@ -47,11 +46,11 @@ const CandleStick = ({ scaleY, scaleBody, index, candleWidth, fill, candle }) =>
                 y={yHigh}
                 width={candleWidth}
                 height={candleHeight}
-                color={fill}
+                color={col}
             />
         </>
 
     )
 }
 
-export default CandleStick
+export { CandleChart, CandleStick }
