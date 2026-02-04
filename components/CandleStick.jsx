@@ -1,7 +1,7 @@
 import { Canvas, Line, Rect, vec } from '@shopify/react-native-skia'
 import { scaleLinear } from 'd3-scale'
 import { FindDomain } from "../data/math-stuff.js"
-import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated'
+import Animated, { useAnimatedStyle, useDerivedValue, useSharedValue } from 'react-native-reanimated'
 import { StyleSheet, View } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 
@@ -57,32 +57,34 @@ const CandleStick = ({ scaleY, scaleBody, index, candleWidth, fill, candle }) =>
     )
 }
 
-const ChartScrub = ({width, height, bgCol, data, fill }) => {
+const ChartScrub = ({ width, height, bgCol, data, fill }) => {
     //let { width } = useWindowDimensions()
     const caliber = width / data.length
     const x = useSharedValue(0)
     const y = useSharedValue(0)
     const isActive = useSharedValue(false)
 
+    // Snap X to nearest candle center
+    const snappedX = useDerivedValue(() => {
+        // following line finds nearest candle's start value
+        const slot = Math.floor(x.value / candleWidth)
+        const clamped = Math.max(0, Math.min(slot, data.length - 1))
+        // this line snaps first to start of candle, then +candleWidth/2 to get to center 
+        return clamped * candleWidth + candleWidth / 2
+    })
+
+    const clampedY = useDerivedValue(() => {
+        return Math.min(height, Math.max(y.value, 0))
+    })
+
+
     const pan = Gesture.Pan()
         .onBegin(() => {
             isActive.value = true
         })
         .onUpdate((evt) => {
-            rawX = evt.x
-            rawY = evt.y
-            clampedY = Math.min(height, Math.max(rawY, 0))
-
-            // Snap X to nearest candle center
-            // following line finds nearest candle's start value
-            const slot = Math.floor(rawX / caliber);
-            const clampedSlot = Math.max(0, Math.min(slot, data.length - 1))
-            // this line snaps first to start of candle, then +candleWidth/2 to get to center 
-            const snappedX = clampedSlot * candleWidth + candleWidth / 2;
-
-            x.value = snappedX;
-            y.value = clampedY;
-
+            x.value = evt.x
+            y.value = evt.y
         })
         .onEnd(() => {
             isActive.value = false
@@ -91,60 +93,38 @@ const ChartScrub = ({width, height, bgCol, data, fill }) => {
             isActive.value = false
         })
 
-    // Animated styles for lines
-    const horizontalLineStyle = useAnimatedStyle(() => ({
-        opacity: isActive.value ? 1 : 0,
-        transform: [{ translateY: y.value }],
-    }));
-
-    const verticalLineStyle = useAnimatedStyle(() => ({
-        opacity: isActive.value ? 1 : 0,
-        transform: [{ translateX: x.value }],
-    }));
-
     return (
         <View>
             <GestureDetector gesture={pan}>
-                <CandleChart
-                    width={width}
-                    height={height}
-                    bgCol={bgCol}
-                    fill={fill}
-                    data={data}
-                />
-                <Animated.View
-                    style={[
-                        scrubStyles.line,
-                        {
-                            width: width,
-                            height: 1
-                        },
-                        horizontalLineStyle
-                    ]}
-                />
+                <Canvas style={{ width: width, height: height }} >
+                    <CandleChart
+                        width={width}
+                        height={height}
+                        bgCol={bgCol}
+                        fill={fill}
+                        data={data}
+                    />
 
-                <Animated.View
-                    style={[
-                        scrubStyles.line,
-                        {
-                            height: height,
-                            width: 1
-                        },
-                        verticalLineStyle
-                    ]}
-                />
+                    <Line
+                        p1={vec(snappedX.value, 0)}
+                        p2={vec(snappedX.value, height)}
+                        strokeWidth={1}
+                        color={"rgba(255,255,255,0.6)"}
+                        opacity={isActive.value === true ? 1 : 0}
+                    />
 
-
+                    <Line
+                        p1={vec(0, clampedY.value)}
+                        p2={vec(width, clampedY.value)}
+                        strokeWidth={1}
+                        color={"rgba(255,255,255,0.6)"}
+                        opacity={isActive.value === true ? 1 : 0}
+                    />
+                </Canvas>
             </GestureDetector>
         </View>
     )
 
 }
-
-const scrubStyles = StyleSheet.create({
-    line: {
-        position: "absolute"
-    }
-})
 
 export { CandleChart, CandleStick, ChartScrub }
