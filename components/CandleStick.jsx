@@ -76,8 +76,9 @@ const ChartScrub = ({width, height, bgCol, data, fill }) => {
             // Snap X to nearest candle center
             // following line finds nearest candle's start value
             const slot = Math.floor(rawX / caliber);
+            const clampedSlot = Math.max(0, Math.min(slot, data.length - 1))
             // this line snaps first to start of candle, then +candleWidth/2 to get to center 
-            const snappedX = slot * candleWidth + candleWidth / 2;
+            const snappedX = clampedSlot * candleWidth + candleWidth / 2;
 
             x.value = snappedX;
             y.value = clampedY;
