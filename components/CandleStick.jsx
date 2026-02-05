@@ -1,15 +1,16 @@
 import { Canvas, Line, Rect, vec } from '@shopify/react-native-skia'
 import { scaleLinear } from 'd3-scale'
 import { FindDomain } from "../data/math-stuff.js"
-import Animated, { useAnimatedStyle, useDerivedValue, useSharedValue } from 'react-native-reanimated'
-import { StyleSheet, View } from 'react-native'
+import { useDerivedValue, useSharedValue } from 'react-native-reanimated'
+import { View } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
+import { useEffect } from 'react'
 
 // fill is [highCandleCol, lowCandleCol]
 
 const MARGIN = 4
 
-const CandleChart = ({ width, height, bgCol, data, fill }) => {
+const CandleChart = ({ width, height, data, fill, wickColor }) => {
 
     let domain = FindDomain(data)
     let candleWidth = width / data.length
@@ -17,7 +18,7 @@ const CandleChart = ({ width, height, bgCol, data, fill }) => {
     const scaleBody = scaleLinear().domain([0, Math.max(...domain) - Math.min(...domain)]).range([0, height])
 
     return (
-        <Canvas width={width} height={height} style={{ backgroundColor: bgCol }}>
+        <>
             {data.map((candle, idx) => (
                 <CandleStick
                     key={idx}
@@ -26,13 +27,14 @@ const CandleChart = ({ width, height, bgCol, data, fill }) => {
                     index={idx}
                     candleWidth={candleWidth}
                     fill={fill}
-                    candle={candle} />
+                    candle={candle}
+                    wickColor={wickColor} />
             ))}
-        </Canvas>
+        </>
     )
 }
 
-const CandleStick = ({ scaleY, scaleBody, index, candleWidth, fill, candle }) => {
+const CandleStick = ({ scaleY, scaleBody, index, candleWidth, fill, candle, wickColor }) => {
     const { high, low, open, close } = candle
     const col = close > open ? fill[0] : fill[1]
     const x = index * candleWidth
@@ -44,6 +46,7 @@ const CandleStick = ({ scaleY, scaleBody, index, candleWidth, fill, candle }) =>
                 p1={vec(x + candleWidth / 2, scaleY(high))}
                 p2={vec(x + candleWidth / 2, scaleY(low))}
                 strokeWidth={1}
+                color={wickColor}
             />
             <Rect
                 x={x + MARGIN}
@@ -57,8 +60,15 @@ const CandleStick = ({ scaleY, scaleBody, index, candleWidth, fill, candle }) =>
     )
 }
 
-const ChartScrub = ({ width, height, bgCol, data, fill }) => {
-    //let { width } = useWindowDimensions()
+const ChartScrub = ({
+    width,
+    height,
+    bgCol,
+    data,
+    fill = ["green", "red"],
+    wickColor = "rgba(255, 255, 255, 0.6)",
+    crossHairColor = "rgba(255,255,255,0.6)" }) => {
+
     const caliber = width / data.length
     const x = useSharedValue(0)
     const y = useSharedValue(0)
@@ -67,16 +77,37 @@ const ChartScrub = ({ width, height, bgCol, data, fill }) => {
     // Snap X to nearest candle center
     const snappedX = useDerivedValue(() => {
         // following line finds nearest candle's start value
-        const slot = Math.floor(x.value / candleWidth)
+        const slot = Math.floor(x.value / caliber)
         const clamped = Math.max(0, Math.min(slot, data.length - 1))
         // this line snaps first to start of candle, then +candleWidth/2 to get to center 
-        return clamped * candleWidth + candleWidth / 2
+        return clamped * caliber + caliber / 2
     })
 
     const clampedY = useDerivedValue(() => {
         return Math.min(height, Math.max(y.value, 0))
     })
 
+    // had to create the derived values as any skia prop thaqt depends on a shared value ... 
+    // must itself be a derived value, otherwise it won't update on the skia side
+    const verticalP1 = useDerivedValue(() =>
+        vec(snappedX.value, 0)
+    )
+
+    const verticalP2 = useDerivedValue(() =>
+        vec(snappedX.value, height)
+    )
+
+    const horizontalP1 = useDerivedValue(() =>
+        vec(0, clampedY.value)
+    )
+
+    const horizontalP2 = useDerivedValue(() =>
+        vec(width, clampedY.value)
+    )
+
+    const crosshairOpacity = useDerivedValue(() => {
+        return isActive.value ? 1 : 0
+    })
 
     const pan = Gesture.Pan()
         .onBegin(() => {
@@ -85,6 +116,7 @@ const ChartScrub = ({ width, height, bgCol, data, fill }) => {
         .onUpdate((evt) => {
             x.value = evt.x
             y.value = evt.y
+            isActive.value = true
         })
         .onEnd(() => {
             isActive.value = false
@@ -96,29 +128,29 @@ const ChartScrub = ({ width, height, bgCol, data, fill }) => {
     return (
         <View>
             <GestureDetector gesture={pan}>
-                <Canvas style={{ width: width, height: height }} >
+                <Canvas style={{ width: width, height: height, backgroundColor: bgCol }} >
                     <CandleChart
                         width={width}
                         height={height}
-                        bgCol={bgCol}
                         fill={fill}
                         data={data}
+                        wickColor={wickColor}
                     />
 
                     <Line
-                        p1={vec(snappedX.value, 0)}
-                        p2={vec(snappedX.value, height)}
+                        p1={horizontalP1}
+                        p2={horizontalP2}
                         strokeWidth={1}
-                        color={"rgba(255,255,255,0.6)"}
-                        opacity={isActive.value === true ? 1 : 0}
+                        color={crossHairColor}
+                        opacity={crosshairOpacity}
                     />
 
                     <Line
-                        p1={vec(0, clampedY.value)}
-                        p2={vec(width, clampedY.value)}
+                        p1={verticalP1}
+                        p2={verticalP2}
                         strokeWidth={1}
-                        color={"rgba(255,255,255,0.6)"}
-                        opacity={isActive.value === true ? 1 : 0}
+                        color={crossHairColor}
+                        opacity={crosshairOpacity}
                     />
                 </Canvas>
             </GestureDetector>
