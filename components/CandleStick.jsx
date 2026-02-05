@@ -1,4 +1,4 @@
-import { Canvas, Line, Rect, vec } from '@shopify/react-native-skia'
+import { Canvas, Line, Rect, Text, vec } from '@shopify/react-native-skia'
 import { scaleLinear } from 'd3-scale'
 import { FindDomain } from "../data/math-stuff.js"
 import { useDerivedValue, useSharedValue } from 'react-native-reanimated'
@@ -155,6 +155,36 @@ const ChartScrub = ({
                 </Canvas>
             </GestureDetector>
         </View>
+    )
+
+}
+
+const label = ({ height,
+    domain,
+    y,
+    isActive,
+    currency = "$",
+    fontColor = "black",
+    fontSize = 18 }) => {
+
+    const getPrice = useDerivedValue(() => {
+        let min = domain[0]
+        let max = domain[1]
+        return Math.round((y.value / height) * (max - min) / (height - 0) + min)
+    })
+
+    const formattedPrice = useDerivedValue(() => {
+        "worklet"
+
+        return `${currency}${getPrice.value.toFixed(2)}`
+    })
+
+    const opacity = useDerivedValue(() => {
+        return isActive.value ? 1 : 0
+    })
+
+    return (
+        <Text />
     )
 
 }
