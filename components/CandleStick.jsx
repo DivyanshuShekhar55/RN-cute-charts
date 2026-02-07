@@ -9,9 +9,8 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 
 const MARGIN = 4
 
-const CandleChart = ({ width, height, data, fill, wickColor }) => {
+const CandleChart = ({ width, height, data, fill, wickColor, domain }) => {
 
-    let domain = FindDomain(data)
     let candleWidth = width / data.length
     const scaleY = scaleLinear().domain(domain).range([height, 0])
     const scaleBody = scaleLinear().domain([0, Math.max(...domain) - Math.min(...domain)]).range([0, height])
@@ -65,8 +64,13 @@ const ChartScrub = ({
     bgCol,
     data,
     fill = ["green", "red"],
+    currency = "$",
+    labelFontSize = 18,
+    labelFontCol= "black",
     wickColor = "rgba(255, 255, 255, 0.6)",
     crossHairColor = "rgba(255,255,255,0.6)" }) => {
+
+    let domain = FindDomain(data)
 
     const caliber = width / data.length
     const x = useSharedValue(0)
@@ -134,6 +138,7 @@ const ChartScrub = ({
                         fill={fill}
                         data={data}
                         wickColor={wickColor}
+                        domain={domain}
                     />
 
                     <Line
@@ -151,6 +156,17 @@ const ChartScrub = ({
                         color={crossHairColor}
                         opacity={crosshairOpacity}
                     />
+
+                    <Label
+                        domain={domain}
+                        y={clampedY}
+                        isActive={isActive}
+                        currency={currency}
+                        width={width}
+                        fontColor={labelFontCol}
+                        fontSize={labelFontSize}
+                    />
+
                 </Canvas>
             </GestureDetector>
         </View>
@@ -158,7 +174,7 @@ const ChartScrub = ({
 
 }
 
-const label = ({ height,
+const Label = ({ height,
     domain,
     y,
     isActive,
