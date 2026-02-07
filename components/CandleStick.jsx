@@ -68,6 +68,10 @@ const ChartScrub = ({
     labelFontSize = 18,
     labelRightOffset = 96,
     labelFontCol = "black",
+    numLabels = 5,
+    axisFontColor = "black",
+    axisFontSize = 14,
+    axisLabelRightOffset = 36,
     wickColor = "rgba(255, 255, 255, 0.6)",
     crossHairColor = "rgba(255,255,255,0.6)" }) => {
 
@@ -170,6 +174,15 @@ const ChartScrub = ({
                         labelRightOffset={labelRightOffset}
                     />
 
+                    <YAxis
+                        height={height}
+                        domain={domain}
+                        numLabels={numLabels}
+                        axisFontColor={axisFontColor}
+                        axisFontSize={axisFontSize}
+                        axisLabelRightOffset={axisLabelRightOffset}
+                    />
+
                 </Canvas>
             </GestureDetector>
         </View>
@@ -225,6 +238,41 @@ const Label = ({
             font={font}
             color={fontColor}
         />
+    )
+}
+
+const YAxis = ({ height,
+    domain,
+    numLabels,
+    axisFontSize,
+    axisFontColor,
+    axisLabelRightOffset }) => {
+
+    const font = matchFont({
+        fontSize: axisFontSize,
+    })
+
+    const [min, max] = domain
+    const priceStep = (max - min) / (numLabels - 1)
+
+    return (
+        <>
+            {Array.from({ length: numLabels }).map((_, idx) => {
+                const price = max - (idx * priceStep)
+                const yPos = (idx / (numLabels - 1)) * height
+
+                return (
+                    <Text
+                        key={idx}
+                        x={axisLabelRightOffset}
+                        y={yPos + axisFontSize / 2}
+                        text={`$${price.toFixed(2)}`}
+                        color={axisFontColor}
+                        font={font}
+                    />
+                )
+            })}
+        </>
     )
 }
 
