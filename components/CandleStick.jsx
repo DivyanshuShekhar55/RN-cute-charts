@@ -1,8 +1,8 @@
-import { Canvas, Line, Rect, Text, vec, matchFont, useFont } from '@shopify/react-native-skia'
+import { Canvas, Line, Rect, Text, vec, matchFont, useFonts } from '@shopify/react-native-skia'
 import { scaleLinear } from 'd3-scale'
 import { FindDomain } from "../data/math-stuff.js"
 import { useDerivedValue, useSharedValue } from 'react-native-reanimated'
-import { View } from 'react-native'
+import { Platform, View } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 
 // fill is [highCandleCol, lowCandleCol]
@@ -185,11 +185,6 @@ const Label = ({
     fontColor = "black",
     fontSize = 32 }) => {
 
-    // const font = matchFont({
-    //     fontSize: fontSize,
-    //     fontWeight: 'bold',
-    // })
-
     const formattedPrice = useDerivedValue(() => {
         "worklet"
         let min = domain[0]
@@ -204,15 +199,23 @@ const Label = ({
 
     const textY = useDerivedValue(() => {
         // Adjust Y position so text doesn't go off screen
-        return Math.max(fontSize, Math.min(y.value + fontSize / 2, height))
+        return Math.max(fontSize, Math.min(y.value + fontSize, height))
     })
 
-    const font = useFont(require("../assets/fonts/Satoshi-Bold.otf"), 18);
-    if (!font) return null;
+    // go with default system fonts for now
+    // TODO : might add customised fonts here
+    const fontFamily = Platform.select({ default: "sans-serif" });
+    const fontStyle = {
+        fontFamily,
+        fontSize: fontSize,
+        fontWeight: "500",
+    };
+    const font = matchFont(fontStyle);
+
 
     return (
         <Text
-            x={width-80}
+            x={width - 80}
             y={textY}
             text={formattedPrice}
             color={fontColor}
