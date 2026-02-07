@@ -4,7 +4,6 @@ import { FindDomain } from "../data/math-stuff.js"
 import { useDerivedValue, useSharedValue } from 'react-native-reanimated'
 import { View } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
-import { useEffect } from 'react'
 
 // fill is [highCandleCol, lowCandleCol]
 
@@ -164,13 +163,14 @@ const label = ({ height,
     y,
     isActive,
     currency = "$",
+    width,
     fontColor = "black",
     fontSize = 18 }) => {
 
     const getPrice = useDerivedValue(() => {
         let min = domain[0]
         let max = domain[1]
-        return Math.round((y.value / height) * (max - min) / (height - 0) + min)
+        return Math.round(max - (y.value / height) * (max - min))
     })
 
     const formattedPrice = useDerivedValue(() => {
@@ -184,7 +184,14 @@ const label = ({ height,
     })
 
     return (
-        <Text />
+        <Text
+            x={width - 16}
+            y={y.value}
+            text={formattedPrice}
+            opacity={opacity}
+            font={{ size: fontSize, family: "Arial", weight: "bold" }}
+            color={fontColor}
+        />
     )
 
 }
