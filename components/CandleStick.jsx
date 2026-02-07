@@ -276,4 +276,34 @@ const YAxis = ({ height,
     )
 }
 
+const XAxis = ({ width, data, numLabels, axisFontSize, axisFontColor, axisLabelBottomOffset }) => {
+    const font = matchFont({
+        fontSize: axisFontSize,
+    })
+
+    const step = Math.floor(data.length / (numLabels - 1))
+    const dataLen = data.length
+
+    return (
+        <>
+            {Array.from({ length: numLabels }).map((_, idx) => {
+                const dataIdx = Math.min(idx * step, data.length - 1)
+                const candle = data[dataIdx]
+                const xPos = (dataIdx / dataLen) * width
+
+                return (
+                    <Text
+                        key={idx}
+                        x={xPos}
+                        y={axisLabelBottomOffset}
+                        text={candle.timestamp}
+                        color={axisFontColor}
+                        font={font}
+                    />
+                )
+            })}
+        </>
+    )
+}
+
 export { CandleChart, CandleStick, ChartScrub }
