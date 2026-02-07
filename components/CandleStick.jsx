@@ -66,6 +66,7 @@ const ChartScrub = ({
     fill = ["green", "red"],
     currency = "$",
     labelFontSize = 18,
+    labelRightOffset = 96,
     labelFontCol = "black",
     wickColor = "rgba(255, 255, 255, 0.6)",
     crossHairColor = "rgba(255,255,255,0.6)" }) => {
@@ -166,6 +167,7 @@ const ChartScrub = ({
                         width={width}
                         fontColor={labelFontCol}
                         fontSize={labelFontSize}
+                        labelRightOffset={labelRightOffset}
                     />
 
                 </Canvas>
@@ -180,10 +182,11 @@ const Label = ({
     domain,
     y,
     isActive,
-    currency = "$",
+    currency,
     width,
-    fontColor = "black",
-    fontSize = 32 }) => {
+    fontColor,
+    fontSize,
+    labelRightOffset }) => {
 
     const formattedPrice = useDerivedValue(() => {
         "worklet"
@@ -215,12 +218,12 @@ const Label = ({
 
     return (
         <Text
-            x={width - 80}
+            x={width - labelRightOffset}
             y={textY}
             text={formattedPrice}
-            color={fontColor}
             opacity={opacity}
             font={font}
+            color={fontColor}
         />
     )
 }
