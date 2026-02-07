@@ -1,4 +1,4 @@
-import { Canvas, Line, Rect, Text, vec } from '@shopify/react-native-skia'
+import { Canvas, Line, Rect, Text, vec, matchFont, useFont } from '@shopify/react-native-skia'
 import { scaleLinear } from 'd3-scale'
 import { FindDomain } from "../data/math-stuff.js"
 import { useDerivedValue, useSharedValue } from 'react-native-reanimated'
@@ -66,7 +66,7 @@ const ChartScrub = ({
     fill = ["green", "red"],
     currency = "$",
     labelFontSize = 18,
-    labelFontCol= "black",
+    labelFontCol = "black",
     wickColor = "rgba(255, 255, 255, 0.6)",
     crossHairColor = "rgba(255,255,255,0.6)" }) => {
 
@@ -159,6 +159,7 @@ const ChartScrub = ({
 
                     <Label
                         domain={domain}
+                        height={height}
                         y={clampedY}
                         isActive={isActive}
                         currency={currency}
@@ -174,42 +175,51 @@ const ChartScrub = ({
 
 }
 
-const Label = ({ height,
+const Label = ({
+    height,
     domain,
     y,
     isActive,
     currency = "$",
     width,
     fontColor = "black",
-    fontSize = 18 }) => {
+    fontSize = 32 }) => {
 
-    const getPrice = useDerivedValue(() => {
-        let min = domain[0]
-        let max = domain[1]
-        return Math.round(max - (y.value / height) * (max - min))
-    })
+    // const font = matchFont({
+    //     fontSize: fontSize,
+    //     fontWeight: 'bold',
+    // })
 
     const formattedPrice = useDerivedValue(() => {
         "worklet"
-
-        return `${currency}${getPrice.value.toFixed(2)}`
+        let min = domain[0]
+        let max = domain[1]
+        const price = max - (y.value / height) * (max - min)
+        return `${currency}${price.toFixed(2)}`
     })
 
     const opacity = useDerivedValue(() => {
         return isActive.value ? 1 : 0
     })
 
+    const textY = useDerivedValue(() => {
+        // Adjust Y position so text doesn't go off screen
+        return Math.max(fontSize, Math.min(y.value + fontSize / 2, height))
+    })
+
+    const font = useFont(require("../assets/fonts/Satoshi-Bold.otf"), 18);
+    if (!font) return null;
+
     return (
         <Text
-            x={width - 16}
-            y={y.value}
+            x={width-80}
+            y={textY}
             text={formattedPrice}
-            opacity={opacity}
-            font={{ size: fontSize, family: "Arial", weight: "bold" }}
             color={fontColor}
+            opacity={opacity}
+            font={font}
         />
     )
-
 }
 
 export { CandleChart, CandleStick, ChartScrub }
