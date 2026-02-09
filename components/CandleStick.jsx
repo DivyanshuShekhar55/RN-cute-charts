@@ -61,8 +61,8 @@ const CandleStick = ({ scaleY, scaleBody, index, candleWidth, fill, candle, wick
 const ChartScrub = ({
     width,
     height,
-    bgCol,
     data,
+    bgCol = "white",
     fill = ["green", "red"],
     currency = "$",
     labelFontSize = 18,
@@ -71,7 +71,7 @@ const ChartScrub = ({
     numLabels = 5,
     axisFontColor = "black",
     axisFontSize = 14,
-    axisLabelRightOffset = 36,
+    axisLabelRightOffset = 54,
     wickColor = "rgba(255, 255, 255, 0.6)",
     crossHairColor = "rgba(255,255,255,0.6)" }) => {
 
@@ -135,8 +135,39 @@ const ChartScrub = ({
 
     return (
         <View>
+
+            {/* separated the axes as don't want to re-render them everytime user moves a finger */}
+            <Canvas style={{ width: width, height: height, zIndex: 0 }} pointerEvents='none'>
+                <YAxis
+                    height={height}
+                    width={width}
+                    domain={domain}
+                    numLabels={numLabels}
+                    axisFontColor={axisFontColor}
+                    axisFontSize={axisFontSize}
+                    axisLabelRightOffset={axisLabelRightOffset}
+                />
+                <XAxis
+                    height={height}
+                    width={width}
+                    data={data}
+                    numLabels={numLabels}
+                    axisFontColor={axisFontColor}
+                    axisFontSize={axisFontSize}
+                    axisLabelRightOffset={axisLabelRightOffset}
+                />
+            </Canvas>
+
             <GestureDetector gesture={pan}>
-                <Canvas style={{ width: width, height: height, backgroundColor: bgCol }} >
+                <Canvas style={{
+                    width: width,
+                    height: height,
+                    backgroundColor: "transparent",
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    zIndex: 1
+                }} >
                     <CandleChart
                         width={width}
                         height={height}
@@ -174,14 +205,6 @@ const ChartScrub = ({
                         labelRightOffset={labelRightOffset}
                     />
 
-                    <YAxis
-                        height={height}
-                        domain={domain}
-                        numLabels={numLabels}
-                        axisFontColor={axisFontColor}
-                        axisFontSize={axisFontSize}
-                        axisLabelRightOffset={axisLabelRightOffset}
-                    />
 
                 </Canvas>
             </GestureDetector>
@@ -242,15 +265,21 @@ const Label = ({
 }
 
 const YAxis = ({ height,
+    width,
     domain,
     numLabels,
     axisFontSize,
     axisFontColor,
     axisLabelRightOffset }) => {
 
-    const font = matchFont({
+    const fontFamily = Platform.select({ default: "sans-serif" });
+    const fontStyle = {
+        fontFamily,
         fontSize: axisFontSize,
-    })
+        fontWeight: "500",
+    };
+    const font = matchFont(fontStyle);
+
 
     const [min, max] = domain
     const priceStep = (max - min) / (numLabels - 1)
@@ -264,7 +293,7 @@ const YAxis = ({ height,
                 return (
                     <Text
                         key={idx}
-                        x={axisLabelRightOffset}
+                        x={width - axisLabelRightOffset}
                         y={yPos + axisFontSize / 2}
                         text={`$${price.toFixed(2)}`}
                         color={axisFontColor}
@@ -276,17 +305,21 @@ const YAxis = ({ height,
     )
 }
 
-const XAxis = ({ width, data, numLabels, axisFontSize, axisFontColor, axisLabelBottomOffset }) => {
-    const font = matchFont({
+const XAxis = ({ height, width, data, numLabels, axisFontSize, axisFontColor, axisLabelBottomOffset }) => {
+    const fontFamily = Platform.select({ default: "sans-serif" });
+    const fontStyle = {
+        fontFamily,
         fontSize: axisFontSize,
-    })
+        fontWeight: "500",
+    };
+    const font = matchFont(fontStyle);
 
     const step = Math.floor(data.length / (numLabels - 1))
     const dataLen = data.length
 
     return (
         <>
-            {Array.from({ length: numLabels }).map((_, idx) => {
+            {Array.from({ numLabels }).map((_, idx) => {
                 const dataIdx = Math.min(idx * step, data.length - 1)
                 const candle = data[dataIdx]
                 const xPos = (dataIdx / dataLen) * width
@@ -295,7 +328,7 @@ const XAxis = ({ width, data, numLabels, axisFontSize, axisFontColor, axisLabelB
                     <Text
                         key={idx}
                         x={xPos}
-                        y={axisLabelBottomOffset}
+                        y={height - axisLabelBottomOffset}
                         text={candle.timestamp}
                         color={axisFontColor}
                         font={font}
