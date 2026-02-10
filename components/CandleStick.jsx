@@ -80,7 +80,10 @@ const ChartScrub = ({
 
     let domain = FindDomain(data)
 
-    const caliber = width / data.length
+    const chartRegionWidth = width - axisLabelRightOffset
+    const chartRegionHeight = height - axisLabelBottomOffset
+
+    const caliber = chartRegionWidth / data.length
     const x = useSharedValue(0)
     const y = useSharedValue(0)
     const isActive = useSharedValue(false)
@@ -95,7 +98,7 @@ const ChartScrub = ({
     })
 
     const clampedY = useDerivedValue(() => {
-        return Math.min(height, Math.max(y.value, 0))
+        return Math.min(chartRegionHeight, Math.max(y.value, 0))
     })
 
     // had to create the derived values as any skia prop thaqt depends on a shared value ... 
@@ -105,7 +108,7 @@ const ChartScrub = ({
     )
 
     const verticalP2 = useDerivedValue(() =>
-        vec(snappedX.value, height)
+        vec(snappedX.value, chartRegionHeight)
     )
 
     const horizontalP1 = useDerivedValue(() =>
@@ -113,7 +116,7 @@ const ChartScrub = ({
     )
 
     const horizontalP2 = useDerivedValue(() =>
-        vec(width, clampedY.value)
+        vec(chartRegionWidth, clampedY.value)
     )
 
     const crosshairOpacity = useDerivedValue(() => {
@@ -142,7 +145,7 @@ const ChartScrub = ({
             {/* separated the axes from main canvas as don't want to re-render axes everytime user moves a finger */}
             <Axis
                 data={data}
-                width={width}
+                width={width} // give exact dimensions passed by user, so axes remain in margin area
                 height={height}
                 domain={domain}
                 numLabels={numLabels}
@@ -156,8 +159,8 @@ const ChartScrub = ({
 
             <GestureDetector gesture={pan}>
                 <Canvas style={{
-                    width: width,
-                    height: height,
+                    width: chartRegionWidth,
+                    height: chartRegionHeight,
                     backgroundColor: "transparent",
                     position: 'absolute',
                     top: 0,
@@ -165,8 +168,8 @@ const ChartScrub = ({
                     zIndex: 1
                 }} >
                     <CandleChart
-                        width={width}
-                        height={height}
+                        width={chartRegionWidth}
+                        height={chartRegionHeight}
                         fill={fill}
                         data={data}
                         wickColor={wickColor}
@@ -190,14 +193,14 @@ const ChartScrub = ({
                     />
 
                     <Label
-                        domain={domain}
-                        height={height}
                         y={clampedY}
-                        isActive={isActive}
+                        domain={domain}
                         currency={currency}
-                        width={width}
+                        isActive={isActive}
                         fontColor={labelFontCol}
                         fontSize={labelFontSize}
+                        width={chartRegionWidth}
+                        height={chartRegionHeight}
                         labelRightOffset={labelRightOffset}
                     />
 
@@ -276,7 +279,7 @@ const Axis = ({
     return (
         <Canvas style={{ width: width, height: height, zIndex: 0 }} pointerEvents='none'>
             <YAxis
-                height={height}
+                height={height - axisLabelBottomOffset}
                 width={width}
                 domain={domain}
                 numLabels={numLabels}
@@ -288,7 +291,7 @@ const Axis = ({
             />
             <XAxis
                 height={height}
-                width={width}
+                width={width - axisLabelRightOffset}
                 data={data}
                 numLabels={numLabels}
                 axisFontColor={axisFontColor}
@@ -392,7 +395,7 @@ const XAxis = ({
                         <Text
                             key={idx}
                             x={xPos}
-                            y={height - axisLabelBottomOffset + axisFontSize}
+                            y={height}
                             text={date}
                             color={axisFontColor}
                             font={font}
