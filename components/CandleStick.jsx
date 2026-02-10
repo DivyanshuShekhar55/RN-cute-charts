@@ -72,6 +72,7 @@ const ChartScrub = ({
     axisFontColor = "black",
     axisFontSize = 14,
     axisLabelRightOffset = 54,
+    axisLabelBottomOffset = 20,
     wickColor = "rgba(255, 255, 255, 0.6)",
     crossHairColor = "rgba(255,255,255,0.6)" }) => {
 
@@ -154,7 +155,7 @@ const ChartScrub = ({
                     numLabels={numLabels}
                     axisFontColor={axisFontColor}
                     axisFontSize={axisFontSize}
-                    axisLabelRightOffset={axisLabelRightOffset}
+                    axisLabelBottomOffset={axisLabelBottomOffset}
                 />
             </Canvas>
 
@@ -284,21 +285,27 @@ const YAxis = ({ height,
     const [min, max] = domain
     const priceStep = (max - min) / (numLabels - 1)
 
+    const verticalPadding = axisFontSize / 2
+
     return (
         <>
             {Array.from({ length: numLabels }).map((_, idx) => {
                 const price = max - (idx * priceStep)
-                const yPos = (idx / (numLabels - 1)) * height
+                const yPos = verticalPadding + (idx / (numLabels - 1)) * (height - 2 * verticalPadding)
 
                 return (
-                    <Text
-                        key={idx}
-                        x={width - axisLabelRightOffset}
-                        y={yPos + axisFontSize / 2}
-                        text={`$${price.toFixed(2)}`}
-                        color={axisFontColor}
-                        font={font}
-                    />
+                    <>
+                        <Text
+                            key={idx}
+                            x={width - axisLabelRightOffset}
+                            y={yPos + axisFontSize / 2}
+                            text={`$${price.toFixed(2)}`}
+                            color={axisFontColor}
+                            font={font}
+                        />
+
+                        <AxisLine axisLineColor={"gray"} x1={width} y1={yPos} x2={0} y2={yPos} key={idx + 1} />
+                    </>
                 )
             })}
         </>
@@ -319,23 +326,39 @@ const XAxis = ({ height, width, data, numLabels, axisFontSize, axisFontColor, ax
 
     return (
         <>
-            {Array.from({ numLabels }).map((_, idx) => {
+            {Array.from({ length: numLabels }).map((_, idx) => {
                 const dataIdx = Math.min(idx * step, data.length - 1)
                 const candle = data[dataIdx]
                 const xPos = (dataIdx / dataLen) * width
+                const date = new Date(candle.timestamp * 1000).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false  // change to true for 12hr format like "12:05 PM"
+                })
+                console.log(date)
 
                 return (
-                    <Text
-                        key={idx}
-                        x={xPos}
-                        y={height - axisLabelBottomOffset}
-                        text={candle.timestamp}
-                        color={axisFontColor}
-                        font={font}
-                    />
+                    <>
+                        <Text
+                            key={idx}
+                            x={xPos}
+                            y={height - axisLabelBottomOffset + axisFontSize}
+                            text={date}
+                            color={axisFontColor}
+                            font={font}
+                        />
+                        <AxisLine axisLineColor={"gray"} x1={xPos} y1={0} x2={xPos} y2={height} key={idx + 1} />
+                    </>
                 )
             })}
         </>
+    )
+}
+
+const AxisLine = ({ axisLineColor, x1, y1, x2, y2 }) => {
+    // add line stoke style option
+    return (
+        <Line p1={vec(x1, y1)} p2={vec(x2, y2)} strokeJoin={"round"} strokeCap={"round"} color={axisLineColor} strokeWidth={0} />
     )
 }
 
