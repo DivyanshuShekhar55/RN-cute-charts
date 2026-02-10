@@ -210,14 +210,14 @@ const ChartScrub = ({
 }
 
 const Label = ({
+    y,
+    width,
     height,
     domain,
-    y,
     isActive,
     currency,
-    width,
-    fontColor,
     fontSize,
+    fontColor,
     labelRightOffset }) => {
 
     const formattedPrice = useDerivedValue(() => {
@@ -260,9 +260,10 @@ const Label = ({
     )
 }
 
-const Axis = ({ height,
-    width,
+const Axis = ({
     data,
+    width,
+    height,
     domain,
     numLabels,
     axisFontSize,
@@ -300,15 +301,16 @@ const Axis = ({ height,
     )
 }
 
-const YAxis = ({ height,
+const YAxis = ({
     width,
+    height,
     domain,
     numLabels,
     axisFontSize,
     axisFontColor,
-    axisLabelRightOffset,
     axisLineColor,
-    axisLinePathEffect
+    axisLinePathEffect,
+    axisLabelRightOffset,
 }) => {
 
     const fontFamily = Platform.select({ default: "sans-serif" });
@@ -350,15 +352,16 @@ const YAxis = ({ height,
     )
 }
 
-const XAxis = ({ height,
-    width,
+const XAxis = ({
     data,
+    width,
+    height,
     numLabels,
     axisFontSize,
     axisFontColor,
-    axisLabelBottomOffset,
     axisLineColor,
-    axisLinePathEffect }) => {
+    axisLinePathEffect,
+    axisLabelBottomOffset, }) => {
 
     const fontFamily = Platform.select({ default: "sans-serif" });
     const fontStyle = {
