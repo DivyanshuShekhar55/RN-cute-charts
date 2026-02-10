@@ -1,4 +1,4 @@
-import { Canvas, Line, Rect, Text, vec, matchFont, useFonts } from '@shopify/react-native-skia'
+import { Canvas, Line, Rect, Text, vec, matchFont, useFonts, DashPathEffect } from '@shopify/react-native-skia'
 import { scaleLinear } from 'd3-scale'
 import { FindDomain } from "../data/math-stuff.js"
 import { useDerivedValue, useSharedValue } from 'react-native-reanimated'
@@ -358,7 +358,9 @@ const XAxis = ({ height, width, data, numLabels, axisFontSize, axisFontColor, ax
 const AxisLine = ({ axisLineColor, x1, y1, x2, y2 }) => {
     // add line stoke style option
     return (
-        <Line p1={vec(x1, y1)} p2={vec(x2, y2)} strokeJoin={"round"} strokeCap={"round"} color={axisLineColor} strokeWidth={0} />
+        <Line p1={vec(x1, y1)} p2={vec(x2, y2)} strokeJoin={"round"} strokeCap={"round"} color={axisLineColor} strokeWidth={0} >
+            <DashPathEffect intervals={[4, 4]} />
+        </Line>
     )
 }
 
