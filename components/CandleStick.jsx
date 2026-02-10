@@ -73,6 +73,8 @@ const ChartScrub = ({
     axisFontSize = 14,
     axisLabelRightOffset = 54,
     axisLabelBottomOffset = 20,
+    axisLinePathEffect = "dashed",
+    axisLineColor = "gray",
     wickColor = "rgba(255, 255, 255, 0.6)",
     crossHairColor = "rgba(255,255,255,0.6)" }) => {
 
@@ -137,27 +139,20 @@ const ChartScrub = ({
     return (
         <View>
 
-            {/* separated the axes as don't want to re-render them everytime user moves a finger */}
-            <Canvas style={{ width: width, height: height, zIndex: 0 }} pointerEvents='none'>
-                <YAxis
-                    height={height}
-                    width={width}
-                    domain={domain}
-                    numLabels={numLabels}
-                    axisFontColor={axisFontColor}
-                    axisFontSize={axisFontSize}
-                    axisLabelRightOffset={axisLabelRightOffset}
-                />
-                <XAxis
-                    height={height}
-                    width={width}
-                    data={data}
-                    numLabels={numLabels}
-                    axisFontColor={axisFontColor}
-                    axisFontSize={axisFontSize}
-                    axisLabelBottomOffset={axisLabelBottomOffset}
-                />
-            </Canvas>
+            {/* separated the axes from main canvas as don't want to re-render axes everytime user moves a finger */}
+            <Axis
+                data={data}
+                width={width}
+                height={height}
+                domain={domain}
+                numLabels={numLabels}
+                axisFontSize={axisFontSize}
+                axisFontColor={axisFontColor}
+                axisLineColor={axisLineColor}
+                axisLinePathEffect={axisLinePathEffect}
+                axisLabelRightOffset={axisLabelRightOffset}
+                axisLabelBottomOffset={axisLabelBottomOffset}
+            />
 
             <GestureDetector gesture={pan}>
                 <Canvas style={{
@@ -265,13 +260,56 @@ const Label = ({
     )
 }
 
+const Axis = ({ height,
+    width,
+    data,
+    domain,
+    numLabels,
+    axisFontSize,
+    axisFontColor,
+    axisLineColor,
+    axisLinePathEffect,
+    axisLabelRightOffset,
+    axisLabelBottomOffset,
+}) => {
+    return (
+        <Canvas style={{ width: width, height: height, zIndex: 0 }} pointerEvents='none'>
+            <YAxis
+                height={height}
+                width={width}
+                domain={domain}
+                numLabels={numLabels}
+                axisFontColor={axisFontColor}
+                axisFontSize={axisFontSize}
+                axisLabelRightOffset={axisLabelRightOffset}
+                axisLineColor={axisLineColor}
+                axisLinePathEffect={axisLinePathEffect}
+            />
+            <XAxis
+                height={height}
+                width={width}
+                data={data}
+                numLabels={numLabels}
+                axisFontColor={axisFontColor}
+                axisFontSize={axisFontSize}
+                axisLabelBottomOffset={axisLabelBottomOffset}
+                axisLineColor={axisLineColor}
+                axisLinePathEffect={axisLinePathEffect}
+            />
+        </Canvas>
+    )
+}
+
 const YAxis = ({ height,
     width,
     domain,
     numLabels,
     axisFontSize,
     axisFontColor,
-    axisLabelRightOffset }) => {
+    axisLabelRightOffset,
+    axisLineColor,
+    axisLinePathEffect
+}) => {
 
     const fontFamily = Platform.select({ default: "sans-serif" });
     const fontStyle = {
@@ -304,7 +342,7 @@ const YAxis = ({ height,
                             font={font}
                         />
 
-                        <AxisLine axisLineColor={"gray"} x1={width} y1={yPos} x2={0} y2={yPos} key={idx + 1} />
+                        <AxisLine axisLinePathEffect={axisLinePathEffect} axisLineColor={axisLineColor} x1={width} y1={yPos} x2={0} y2={yPos} key={idx + 1} />
                     </>
                 )
             })}
@@ -312,7 +350,16 @@ const YAxis = ({ height,
     )
 }
 
-const XAxis = ({ height, width, data, numLabels, axisFontSize, axisFontColor, axisLabelBottomOffset }) => {
+const XAxis = ({ height,
+    width,
+    data,
+    numLabels,
+    axisFontSize,
+    axisFontColor,
+    axisLabelBottomOffset,
+    axisLineColor,
+    axisLinePathEffect }) => {
+
     const fontFamily = Platform.select({ default: "sans-serif" });
     const fontStyle = {
         fontFamily,
@@ -347,7 +394,7 @@ const XAxis = ({ height, width, data, numLabels, axisFontSize, axisFontColor, ax
                             color={axisFontColor}
                             font={font}
                         />
-                        <AxisLine axisLineColor={"gray"} x1={xPos} y1={0} x2={xPos} y2={height} key={idx + 1} />
+                        <AxisLine axisLinePathEffect={axisLinePathEffect} axisLineColor={axisLineColor} x1={xPos} y1={0} x2={xPos} y2={height} key={idx + 1} />
                     </>
                 )
             })}
@@ -355,11 +402,18 @@ const XAxis = ({ height, width, data, numLabels, axisFontSize, axisFontColor, ax
     )
 }
 
-const AxisLine = ({ axisLineColor, x1, y1, x2, y2 }) => {
+// axisLinePathEffect is either "dashed", "line" or "none"
+// none removes the axis lines
+const AxisLine = ({ axisLinePathEffect, axisLineColor, x1, y1, x2, y2 }) => {
     // add line stoke style option
+    if (axisLinePathEffect === "none") {
+        return null
+    }
     return (
-        <Line p1={vec(x1, y1)} p2={vec(x2, y2)} strokeJoin={"round"} strokeCap={"round"} color={axisLineColor} strokeWidth={0} >
-            <DashPathEffect intervals={[4, 4]} />
+        <Line p1={vec(x1, y1)} p2={vec(x2, y2)} color={axisLineColor} strokeWidth={0} >
+            {(axisLinePathEffect === "dashed") && (
+                <DashPathEffect intervals={[4, 4]} />
+            )}
         </Line>
     )
 }
