@@ -1,9 +1,10 @@
-import { Canvas, Line, Rect, Text, vec, matchFont, useFonts, DashPathEffect } from '@shopify/react-native-skia'
+import { Canvas, DashPathEffect, Line, matchFont, Rect, Text, vec } from '@shopify/react-native-skia'
 import { scaleLinear } from 'd3-scale'
-import { FindDomain } from "../data/math-stuff.js"
-import { useDerivedValue, useSharedValue } from 'react-native-reanimated'
+import React from 'react'
 import { Platform, View } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
+import { useDerivedValue, useSharedValue } from 'react-native-reanimated'
+import { FindDomain } from "../data/math-stuff.js"
 
 // fill is [highCandleCol, lowCandleCol]
 
@@ -337,9 +338,8 @@ const YAxis = ({
                 const yPos = verticalPadding + (idx / (numLabels - 1)) * (height - 2 * verticalPadding)
 
                 return (
-                    <>
+                    <React.Fragment key={idx}>
                         <Text
-                            key={idx}
                             x={width - axisLabelRightOffset}
                             y={yPos + axisFontSize / 2}
                             text={`$${price.toFixed(2)}`}
@@ -347,8 +347,8 @@ const YAxis = ({
                             font={font}
                         />
 
-                        <AxisLine axisLinePathEffect={axisLinePathEffect} axisLineColor={axisLineColor} x1={width} y1={yPos} x2={0} y2={yPos} key={idx + 1} />
-                    </>
+                        <AxisLine axisLinePathEffect={axisLinePathEffect} axisLineColor={axisLineColor} x1={width} y1={yPos} x2={0} y2={yPos} />
+                    </React.Fragment>
                 )
             })}
         </>
@@ -364,7 +364,7 @@ const XAxis = ({
     axisFontColor,
     axisLineColor,
     axisLinePathEffect,
-    axisLabelBottomOffset, }) => {
+     }) => {
 
     const fontFamily = Platform.select({ default: "sans-serif" });
     const fontStyle = {
@@ -388,20 +388,18 @@ const XAxis = ({
                     minute: '2-digit',
                     hour12: false  // change to true for 12hr format like "12:05 PM"
                 })
-                console.log(date)
 
                 return (
-                    <>
+                    <React.Fragment key={idx}>
                         <Text
-                            key={idx}
                             x={xPos}
                             y={height}
                             text={date}
                             color={axisFontColor}
                             font={font}
                         />
-                        <AxisLine axisLinePathEffect={axisLinePathEffect} axisLineColor={axisLineColor} x1={xPos} y1={0} x2={xPos} y2={height} key={idx + 1} />
-                    </>
+                        <AxisLine axisLinePathEffect={axisLinePathEffect} axisLineColor={axisLineColor} x1={xPos} y1={0} x2={xPos} y2={height} />
+                    </React.Fragment>
                 )
             })}
         </>
@@ -425,3 +423,4 @@ const AxisLine = ({ axisLinePathEffect, axisLineColor, x1, y1, x2, y2 }) => {
 }
 
 export { CandleChart, CandleStick, ChartScrub }
+
