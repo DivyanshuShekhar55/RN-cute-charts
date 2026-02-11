@@ -377,6 +377,10 @@ const XAxis = ({
     const step = Math.floor(data.length / (numLabels - 1))
     const dataLen = data.length
 
+    // we do following reduction to width
+    //  so that the last label doesn't overlap with first label of y-axis
+    width -= axisFontSize
+
     return (
         <>
             {Array.from({ length: numLabels }).map((_, idx) => {
