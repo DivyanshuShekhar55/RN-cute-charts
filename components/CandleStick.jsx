@@ -1,10 +1,11 @@
 import { Canvas, DashPathEffect, Line, matchFont, Rect, Text, vec } from '@shopify/react-native-skia'
 import { scaleLinear } from 'd3-scale'
-import React from 'react'
+import React, { useState, useMemo } from 'react'
 import { Platform, View } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import { useDerivedValue, useSharedValue } from 'react-native-reanimated'
 import { FindDomain } from "../data/math-stuff.js"
+import { scheduleOnUI, scheduleOnRN } from 'react-native-worklets'
 
 // fill is [highCandleCol, lowCandleCol]
 
@@ -77,23 +78,49 @@ const ChartScrub = ({
     axisLinePathEffect = "dashed",
     axisLineColor = "gray",
     wickColor = "rgba(255, 255, 255, 0.6)",
-    crossHairColor = "rgba(255,255,255,0.6)" }) => {
-
-    let domain = FindDomain(data)
+    crossHairColor = "rgba(255,255,255,0.6)",
+    maxVisibleCandles = 50,
+    minVisibleCandles = 10 }) => {
 
     const chartRegionWidth = width - axisLabelRightOffset
     const chartRegionHeight = height - axisLabelBottomOffset
 
-    const caliber = chartRegionWidth / data.length
+    // state for visible range (updates axes on gesture end)
+    // visibleStart for example is min price for the candles currently on screen
+    const [visibleStart, setVisibleStart] = useState(
+        Math.max(0, data.length - Math.min(maxVisibleCandles, data.length))
+    )
+    const [visibleEnd, setVisibleEnd] = useState(data.length)
+
+    // Shared values for gestures
+    const scale = useSharedValue(1)
+    const savedScale = useSharedValue(1)
+    const panOffset = useSharedValue(0)
+    const savedPanOffset = useSharedValue(0)
+
+    // Crosshair state
     const x = useSharedValue(0)
     const y = useSharedValue(0)
     const isActive = useSharedValue(false)
 
-    // Snap X to nearest candle center
+    // Calculate visible data and domain
+    // *** TODO :  in future check if calculating slice everytime is really performant
+    // can we use smthing like a sliding window?
+    const visibleData = useMemo(() => {
+        return data.slice(visibleStart, visibleEnd)
+    }, [data, visibleStart, visibleEnd])
+
+    const domain = useMemo(() => {
+        return FindDomain(visibleData)
+    }, [visibleData])
+
+    const caliber = chartRegionWidth / visibleData.length
+
+    // Snap X (user's touch and crosshair X) to nearest candle's center
     const snappedX = useDerivedValue(() => {
         // following line finds nearest candle's start value
         const slot = Math.floor(x.value / caliber)
-        const clamped = Math.max(0, Math.min(slot, data.length - 1))
+        const clamped = Math.max(0, Math.min(slot, visibleData.length - 1))
         // this line snaps first to start of candle, then +candleWidth/2 to get to center 
         return clamped * caliber + caliber / 2
     })
@@ -102,7 +129,7 @@ const ChartScrub = ({
         return Math.min(chartRegionHeight, Math.max(y.value, 0))
     })
 
-    // had to create the derived values as any skia prop thaqt depends on a shared value ... 
+    // had to create the derived values as any skia prop that depends on a shared value ... 
     // must itself be a derived value, otherwise it won't update on the skia side
     const verticalP1 = useDerivedValue(() =>
         vec(snappedX.value, 0)
@@ -124,28 +151,102 @@ const ChartScrub = ({
         return isActive.value ? 1 : 0
     })
 
-    const pan = Gesture.Pan()
-        .onBegin(() => {
-            isActive.value = true
+    // Pinch gesture for zoom
+    const pinch = Gesture.Pinch()
+        .onStart(() => {
+            savedScale.value = scale.value
         })
         .onUpdate((evt) => {
-            x.value = evt.x
-            y.value = evt.y
-            isActive.value = true
+            scale.value = savedScale.value * evt.scale
+            console.log("scale", evt.scale)
         })
         .onEnd(() => {
+            // Calculate new visible count based on accumulated scale
+            const initialCount = Math.min(maxVisibleCandles, data.length)
+            const newCount = Math.round(initialCount / scale.value)
+            const clampedCount = Math.max(
+                minVisibleCandles,
+                Math.min(maxVisibleCandles, newCount)
+            )
+
+            console.log("scale on end", clampedCount)
+
+            // Update states to re-render with new visible range
+            // Keep the end position, adjust start based on new count
+
+            // DOES IT REALLY ZOOM AROUNDS THE FOCUS ?  OR THE RIGHT VISIBLE END ?
+            const newStart = Math.max(0, visibleEnd - clampedCount)
+            scheduleOnRN(setVisibleStart, newStart)
+
+            // Reset scale for next gesture
+            // as we consider the next zoom "session" to start from the current zoom level, so scale=1
+            scale.value = 1
+            savedScale.value = 1
+
+        })
+
+    // Pan gesture - one finger shows crosshair, two fingers scroll through data
+    // Pan gesture
+    const pan = Gesture.Pan()
+        .minPointers(1)
+        .maxPointers(2)
+        .onStart((evt) => {
+            if (evt.numberOfPointers === 1) {
+                isActive.value = true
+                x.value = evt.x
+                y.value = evt.y
+            } else {
+                isActive.value = false
+                savedPanOffset.value = panOffset.value
+                console.log("2 fingers yes", evt.numberOfPointers, evt.translationX)
+            }
+        })
+        .onUpdate((evt) => {
+            if (evt.numberOfPointers === 1) {
+                // One finger: crosshair
+                x.value = evt.x
+                y.value = evt.y
+                isActive.value = true
+                console.log("1 fingers yes", evt.numberOfPointers, evt.translationX)
+            } else if (evt.numberOfPointers === 2) {
+                // Two fingers: scroll
+                isActive.value = false
+                panOffset.value = savedPanOffset.value + evt.translationX
+                console.log("2 fingers yes", evt.numberOfPointers, evt.translationX)
+            }
+        })
+        .onEnd((evt) => {
+            if (evt.numberOfPointers >= 2 && Math.abs(panOffset.value) > 5) {
+                const candlesToShift = Math.round(-panOffset.value / caliber)
+                const currentCount = visibleEnd - visibleStart
+
+                const newEnd = Math.min(
+                    data.length,
+                    Math.max(currentCount, visibleEnd + candlesToShift)
+                )
+                const newStart = Math.max(0, newEnd - currentCount)
+
+                scheduleOnRN(setVisibleStart, newStart)
+                scheduleOnRN(setVisibleEnd, newEnd)
+                panOffset.value = 0
+                savedPanOffset.value = 0
+            }
+
             isActive.value = false
         })
         .onFinalize(() => {
             isActive.value = false
         })
 
+    // Combine gestures - pinch and pan can happen simultaneously
+    const composed = Gesture.Exclusive(pinch, pan)
+
     return (
         <View>
 
             {/* separated the axes from main canvas as don't want to re-render axes everytime user moves a finger */}
             <Axis
-                data={data}
+                data={visibleData}
                 width={width} // give exact dimensions passed by user, so axes remain in margin area
                 height={height}
                 domain={domain}
@@ -158,7 +259,7 @@ const ChartScrub = ({
                 axisLabelBottomOffset={axisLabelBottomOffset}
             />
 
-            <GestureDetector gesture={pan}>
+            <GestureDetector gesture={composed}>
                 <Canvas style={{
                     width: chartRegionWidth,
                     height: chartRegionHeight,
@@ -172,7 +273,7 @@ const ChartScrub = ({
                         width={chartRegionWidth}
                         height={chartRegionHeight}
                         fill={fill}
-                        data={data}
+                        data={visibleData}
                         wickColor={wickColor}
                         domain={domain}
                     />
@@ -364,7 +465,7 @@ const XAxis = ({
     axisFontColor,
     axisLineColor,
     axisLinePathEffect,
-     }) => {
+}) => {
 
     const fontFamily = Platform.select({ default: "sans-serif" });
     const fontStyle = {
