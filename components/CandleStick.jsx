@@ -98,6 +98,9 @@ const ChartScrub = ({
     const panOffset = useSharedValue(0)
     const savedPanOffset = useSharedValue(0)
 
+    const savedVisibleStart = useSharedValue(visibleStart)
+    const savedVisibleEnd = useSharedValue(visibleEnd)
+
     // Crosshair state
     const x = useSharedValue(0)
     const y = useSharedValue(0)
@@ -187,59 +190,69 @@ const ChartScrub = ({
 
     // Pan gesture - one finger shows crosshair, two fingers scroll through data
     // Pan gesture
-    const pan = Gesture.Pan()
+
+
+    // Crosshair - one finger only
+    const crosshair = Gesture.Pan()
         .minPointers(1)
-        .maxPointers(2)
+        .maxPointers(1)
         .onStart((evt) => {
-            if (evt.numberOfPointers === 1) {
-                isActive.value = true
-                x.value = evt.x
-                y.value = evt.y
-            } else {
-                isActive.value = false
-                savedPanOffset.value = panOffset.value
-                console.log("2 fingers yes", evt.numberOfPointers, evt.translationX)
-            }
+            isActive.value = true
+            x.value = evt.x
+            y.value = evt.y
         })
         .onUpdate((evt) => {
-            if (evt.numberOfPointers === 1) {
-                // One finger: crosshair
-                x.value = evt.x
-                y.value = evt.y
-                isActive.value = true
-                console.log("1 fingers yes", evt.numberOfPointers, evt.translationX)
-            } else if (evt.numberOfPointers === 2) {
-                // Two fingers: scroll
-                isActive.value = false
-                panOffset.value = savedPanOffset.value + evt.translationX
-                console.log("2 fingers yes", evt.numberOfPointers, evt.translationX)
-            }
+            x.value = evt.x
+            y.value = evt.y
+            isActive.value = true
         })
-        .onEnd((evt) => {
-            if (evt.numberOfPointers >= 2 && Math.abs(panOffset.value) > 5) {
-                const candlesToShift = Math.round(-panOffset.value / caliber)
-                const currentCount = visibleEnd - visibleStart
-
-                const newEnd = Math.min(
-                    data.length,
-                    Math.max(currentCount, visibleEnd + candlesToShift)
-                )
-                const newStart = Math.max(0, newEnd - currentCount)
-
-                scheduleOnRN(setVisibleStart, newStart)
-                scheduleOnRN(setVisibleEnd, newEnd)
-                panOffset.value = 0
-                savedPanOffset.value = 0
-            }
-
+        .onEnd(() => {
             isActive.value = false
         })
         .onFinalize(() => {
             isActive.value = false
         })
 
-    // Combine gestures - pinch and pan can happen simultaneously
-    const composed = Gesture.Exclusive(pinch, pan)
+    // Horizontal scroll - three fingers with live updates
+    const panScroll = Gesture.Pan()
+        .minPointers(3)
+        .maxPointers(3)
+        .onStart(() => {
+            isActive.value = false
+            savedPanOffset.value = panOffset.value
+            // Save the initial visible range when gesture starts
+            savedVisibleStart.value = visibleStart
+            savedVisibleEnd.value = visibleEnd
+        })
+        .onUpdate((evt) => {
+            panOffset.value = savedPanOffset.value + evt.translationX
+
+            // Live update during gesture
+            const candlesToShift = Math.round(-panOffset.value / caliber)
+            const currentCount = savedVisibleEnd.value - savedVisibleStart.value
+
+            const newEnd = Math.min(
+                data.length,
+                Math.max(currentCount, savedVisibleEnd.value + candlesToShift)
+            )
+            const newStart = Math.max(0, newEnd - currentCount)
+
+            // Apply live updates
+            scheduleOnRN(setVisibleStart, newStart)
+            scheduleOnRN(setVisibleEnd, newEnd)
+        })
+        .onEnd(() => {
+            // Reset pan offset for next gesture
+            panOffset.value = 0
+            savedPanOffset.value = 0
+        })
+
+    // Compose: crosshair OR (pinch + pan together)
+    const composed = Gesture.Race(
+        crosshair,
+        pinch,
+        panScroll
+    )
 
     return (
         <View>
