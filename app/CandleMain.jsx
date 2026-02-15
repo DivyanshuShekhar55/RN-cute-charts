@@ -14,10 +14,11 @@ const CandleMain = () => {
         width={width} 
         height={height/2} 
         fill={["green", "red"]} 
-        bgCol={"white"} 
+        bgCol={"black"} 
         data={data} 
         wickColor='gray' 
         crossHairColor='gray'
+        axisFontColor='white'
         maxVisibleCandles={30}
         minVisibleCandles={10}
       />

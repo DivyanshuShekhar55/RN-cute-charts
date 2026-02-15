@@ -155,6 +155,7 @@ const ChartScrub = ({
     })
 
     // Pinch gesture for zoom
+    // 2 finger gesture
     const pinch = Gesture.Pinch()
         .onStart(() => {
             savedScale.value = scale.value
@@ -188,10 +189,6 @@ const ChartScrub = ({
 
         })
 
-    // Pan gesture - one finger shows crosshair, two fingers scroll through data
-    // Pan gesture
-
-
     // Crosshair - one finger only
     const crosshair = Gesture.Pan()
         .minPointers(1)
@@ -213,7 +210,7 @@ const ChartScrub = ({
             isActive.value = false
         })
 
-    // Horizontal scroll - three fingers with live updates
+    // Horizontal scroll - three fingers with live UI updates
     const panScroll = Gesture.Pan()
         .minPointers(3)
         .maxPointers(3)
@@ -262,6 +259,7 @@ const ChartScrub = ({
                 data={visibleData}
                 width={width} // give exact dimensions passed by user, so axes remain in margin area
                 height={height}
+                bgCol={bgCol}
                 domain={domain}
                 numLabels={numLabels}
                 axisFontSize={axisFontSize}
@@ -382,6 +380,7 @@ const Axis = ({
     data,
     width,
     height,
+    bgCol,
     domain,
     numLabels,
     axisFontSize,
@@ -392,7 +391,7 @@ const Axis = ({
     axisLabelBottomOffset,
 }) => {
     return (
-        <Canvas style={{ width: width, height: height, zIndex: 0 }} pointerEvents='none'>
+        <Canvas style={{ width: width, height: height, zIndex: 0, backgroundColor:bgCol }} pointerEvents='none'>
             <YAxis
                 height={height - axisLabelBottomOffset}
                 width={width}
